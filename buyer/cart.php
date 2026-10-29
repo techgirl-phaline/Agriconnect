@@ -3,7 +3,7 @@
 session_start();
 require_once "../db.php";
 
-// Initialise the cart.
+// Initialise cart.
 if (!isset($_SESSION["cart"]) || !is_array($_SESSION["cart"])) {
     $_SESSION["cart"] = [];
 }
@@ -11,7 +11,7 @@ if (!isset($_SESSION["cart"]) || !is_array($_SESSION["cart"])) {
 $message = "";
 $message_type = "success";
 
-// Handle all cart actions.
+// Handle cart actions.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = $_POST["action"] ?? "";
     $product_id = filter_input(INPUT_POST, "product_id", FILTER_VALIDATE_INT);
@@ -45,18 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $product = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
-            if (
-                !$product ||
-                (float)$product["quantity_available"] <= 0
-            ) {
+            if (!$product || (float)$product["quantity_available"] <= 0) {
                 unset($_SESSION["cart"][$product_id]);
                 $message = "This product is unavailable or not approved.";
                 $message_type = "danger";
             } else {
-                $stock = (float)$product["quantity_available"];
-                $current_quantity = (int)(
-                    $_SESSION["cart"][$product_id] ?? 0
-                );
+                $stock = (int)$product["quantity_available"];
+                $current_quantity = (int)($_SESSION["cart"][$product_id] ?? 0);
 
                 $new_quantity = ($action === "add")
                     ? $current_quantity + $quantity
@@ -87,100 +82,86 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit;
 }
 
-// Retrieve messages after redirects.
+// Display messages after redirects.
 if (isset($_GET["message"])) {
     $message = (string)$_GET["message"];
-    $message_type = (
-        ($_GET["type"] ?? "") === "danger"
-    ) ? "danger" : "success";
+    $message_type = (($_GET["type"] ?? "") === "danger")
+        ? "danger"
+        : "success";
 }
 
-// Load the products in the cart.
+// Remove invalid cart entries.
+foreach ($_SESSION["cart"] as $id => $quantity) {
+    if ((int)$id < 1 || (int)$quantity < 1) {
+        unset($_SESSION["cart"][$id]);
+    }
+}
+
+// Load approved, available cart products.
 $cart_products = [];
 $total = 0;
 
 if (!empty($_SESSION["cart"])) {
-    $product_ids = [];
+    $cart_items = [];
 
     foreach ($_SESSION["cart"] as $id => $quantity) {
-        $id = (int)$id;
-        $quantity = (int)$quantity;
+        $cart_items[(int)$id] = (int)$quantity;
+    }
 
-        if ($id > 0 && $quantity > 0) {
-            $product_ids[$id] = $quantity;
-        } else {
+    $ids = array_keys($cart_items);
+    $placeholders = implode(",", array_fill(0, count($ids), "?"));
+    $types = str_repeat("i", count($ids));
+
+    $sql = "SELECT product_id, product_name, price, unit,
+                   quantity_available, image, status, approval_status
+            FROM products
+            WHERE product_id IN ($placeholders)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$ids);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($product = $result->fetch_assoc()) {
+        $id = (int)$product["product_id"];
+
+        if (
+            $product["status"] !== "available" ||
+            $product["approval_status"] !== "approved" ||
+            (float)$product["quantity_available"] <= 0
+        ) {
             unset($_SESSION["cart"][$id]);
-        }
-    }
-
-    if (!empty($product_ids)) {
-        $ids = array_keys($product_ids);
-        $placeholders = implode(
-            ",",
-            array_fill(0, count($ids), "?")
-        );
-        $types = str_repeat("i", count($ids));
-
-        $sql = "SELECT
-                    product_id,
-                    product_name,
-                    price,
-                    unit,
-                    quantity_available,
-                    image,
-                    status,
-                    approval_status
-                FROM products
-                WHERE product_id IN ($placeholders)";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param($types, ...$ids);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        while ($product = $result->fetch_assoc()) {
-            $id = (int)$product["product_id"];
-
-            if (
-                $product["status"] !== "available" ||
-                $product["approval_status"] !== "approved" ||
-                (float)$product["quantity_available"] <= 0
-            ) {
-                unset($_SESSION["cart"][$id]);
-                continue;
-            }
-
-            $stock = (int)$product["quantity_available"];
-            $quantity = (int)($_SESSION["cart"][$id] ?? 0);
-
-            if ($quantity < 1) {
-                unset($_SESSION["cart"][$id]);
-                continue;
-            }
-
-            if ($quantity > $stock) {
-                $quantity = $stock;
-                $_SESSION["cart"][$id] = $quantity;
-            }
-
-            $product["cart_quantity"] = $quantity;
-            $product["subtotal"] =
-                (float)$product["price"] * $quantity;
-
-            $total += $product["subtotal"];
-            $cart_products[] = $product;
+            continue;
         }
 
-        $stmt->close();
+        $stock = (int)$product["quantity_available"];
+        $quantity = (int)($_SESSION["cart"][$id] ?? 0);
+
+        if ($quantity < 1) {
+            unset($_SESSION["cart"][$id]);
+            continue;
+        }
+
+        if ($quantity > $stock) {
+            $quantity = $stock;
+            $_SESSION["cart"][$id] = $quantity;
+        }
+
+        $product["cart_quantity"] = $quantity;
+        $product["subtotal"] = (float)$product["price"] * $quantity;
+
+        $total += $product["subtotal"];
+        $cart_products[] = $product;
     }
+
+    $stmt->close();
 }
 
+// Count distinct products for the navbar badge.
+$cart_item_count = count($cart_products);
+
 function cartEscape($value) {
-    return htmlspecialchars(
-        (string)$value,
-        ENT_QUOTES,
-        "UTF-8"
-    );
+    return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
 }
 ?>
 <!DOCTYPE html>
@@ -188,12 +169,10 @@ function cartEscape($value) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>My Cart | AgriConnect</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
           rel="stylesheet">
 
@@ -231,6 +210,46 @@ function cartEscape($value) {
         .nav-link {
             color: white !important;
             font-weight: 600;
+        }
+
+        .nav-link:hover {
+            color: var(--yellow) !important;
+        }
+        .cart-nav-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    background-color: #F5CF32;
+    color: #06452F !important;
+    padding: 8px 14px !important;
+    border-radius: 8px;
+    font-weight: 800;
+    transition: background-color 0.3s ease;
+}
+
+.cart-nav-link:hover {
+    background-color: #E8BD20;
+    color: #06452F !important;
+}
+
+.cart-nav-link .cart-count-badge {
+    background-color: #FFFFFF;
+    color: #06452F;
+}
+
+        .cart-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 23px;
+            height: 23px;
+            padding: 0 6px;
+            border-radius: 50px;
+            background-color: var(--yellow);
+            color: var(--deep-green);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
         }
 
         .page-heading {
@@ -321,7 +340,6 @@ function cartEscape($value) {
         }
     </style>
 </head>
-
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark">
@@ -352,8 +370,16 @@ function cartEscape($value) {
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="cart.php">
-                        <i class="bi bi-cart3 me-1"></i>My Cart
+                    <a class="nav-link active cart-nav-link"
+                       aria-current="page"
+                       href="cart.php">
+                        <span><i class="bi bi-cart3 me-1"></i>My Cart</span>
+
+                        <?php if ($cart_item_count > 0): ?>
+                            <span class="cart-count-badge">
+                                <?php echo $cart_item_count; ?>
+                            </span>
+                        <?php endif; ?>
                     </a>
                 </li>
             </ul>
@@ -362,12 +388,10 @@ function cartEscape($value) {
 </nav>
 
 <main class="container py-5">
-
     <div class="mb-4">
         <h1 class="page-heading">
             <i class="bi bi-cart3 me-2"></i>My Shopping Cart
         </h1>
-
         <p class="text-secondary">
             Review your selected produce before checkout.
         </p>
@@ -381,31 +405,23 @@ function cartEscape($value) {
     <?php endif; ?>
 
     <?php if (empty($cart_products)): ?>
-
         <div class="cart-panel empty-cart">
             <i class="bi bi-basket"></i>
-
             <h3 class="page-heading mt-3">Your Cart Is Empty</h3>
-
             <p class="text-secondary">
                 Explore the catalogue and add produce you would like to buy.
             </p>
-
             <a href="../produce-catalogue.php" class="btn btn-green mt-2">
                 <i class="bi bi-search me-1"></i>Browse Produce
             </a>
         </div>
 
     <?php else: ?>
-
         <div class="row g-4">
-
             <div class="col-lg-8">
                 <div class="cart-panel">
-
                     <div class="table-responsive">
                         <table class="table align-middle">
-
                             <thead>
                                 <tr>
                                     <th>Produce</th>
@@ -415,61 +431,34 @@ function cartEscape($value) {
                                     <th>Action</th>
                                 </tr>
                             </thead>
-
                             <tbody>
                             <?php foreach ($cart_products as $product): ?>
                                 <tr>
                                     <td>
                                         <div class="product-name">
-                                            <?php
-                                            echo cartEscape(
-                                                $product["product_name"]
-                                            );
-                                            ?>
+                                            <?php echo cartEscape($product["product_name"]); ?>
                                         </div>
-
                                         <small class="text-secondary">
-                                            Per
-                                            <?php
-                                            echo cartEscape($product["unit"]);
-                                            ?>
+                                            Per <?php echo cartEscape($product["unit"]); ?>
                                         </small>
                                     </td>
 
                                     <td>
-                                        KSh
-                                        <?php
-                                        echo number_format(
-                                            (float)$product["price"],
-                                            2
-                                        );
-                                        ?>
+                                        KSh <?php echo number_format((float)$product["price"], 2); ?>
                                     </td>
 
                                     <td>
                                         <form method="POST" action="cart.php"
                                               class="d-flex gap-2 align-items-center">
+                                            <input type="hidden" name="action" value="update">
+                                            <input type="hidden" name="product_id"
+                                                   value="<?php echo (int)$product["product_id"]; ?>">
 
-                                            <input type="hidden"
-                                                   name="action"
-                                                   value="update">
-
-                                            <input type="hidden"
-                                                   name="product_id"
-                                                   value="<?php
-                                                   echo (int)$product["product_id"];
-                                                   ?>">
-
-                                            <input type="number"
-                                                   name="quantity"
+                                            <input type="number" name="quantity"
                                                    class="form-control quantity-input"
                                                    min="1"
-                                                   max="<?php
-                                                   echo (int)$product["quantity_available"];
-                                                   ?>"
-                                                   value="<?php
-                                                   echo (int)$product["cart_quantity"];
-                                                   ?>"
+                                                   max="<?php echo (int)$product["quantity_available"]; ?>"
+                                                   value="<?php echo (int)$product["cart_quantity"]; ?>"
                                                    required>
 
                                             <button type="submit"
@@ -479,38 +468,21 @@ function cartEscape($value) {
                                                 <i class="bi bi-arrow-repeat"></i>
                                             </button>
                                         </form>
-
                                         <small class="text-secondary">
-                                            Stock:
-                                            <?php
-                                            echo (int)$product["quantity_available"];
-                                            ?>
+                                            Stock: <?php echo (int)$product["quantity_available"]; ?>
                                         </small>
                                     </td>
 
                                     <td class="product-price">
-                                        KSh
-                                        <?php
-                                        echo number_format(
-                                            $product["subtotal"],
-                                            2
-                                        );
-                                        ?>
+                                        KSh <?php echo number_format($product["subtotal"], 2); ?>
                                     </td>
 
                                     <td>
                                         <form method="POST" action="cart.php"
                                               onsubmit="return confirm('Remove this product from your cart?');">
-
-                                            <input type="hidden"
-                                                   name="action"
-                                                   value="remove">
-
-                                            <input type="hidden"
-                                                   name="product_id"
-                                                   value="<?php
-                                                   echo (int)$product["product_id"];
-                                                   ?>">
+                                            <input type="hidden" name="action" value="remove">
+                                            <input type="hidden" name="product_id"
+                                                   value="<?php echo (int)$product["product_id"]; ?>">
 
                                             <button type="submit"
                                                     class="btn btn-outline-danger btn-sm"
@@ -522,7 +494,6 @@ function cartEscape($value) {
                                 </tr>
                             <?php endforeach; ?>
                             </tbody>
-
                         </table>
                     </div>
 
@@ -530,27 +501,21 @@ function cartEscape($value) {
                        class="btn btn-outline-success mt-2">
                         <i class="bi bi-arrow-left me-1"></i>Continue Shopping
                     </a>
-
                 </div>
             </div>
 
             <div class="col-lg-4">
                 <div class="summary-panel">
-
                     <h4 class="page-heading mb-4">Order Summary</h4>
 
                     <div class="d-flex justify-content-between mb-3">
                         <span>Items</span>
-                        <strong>
-                            <?php echo count($cart_products); ?>
-                        </strong>
+                        <strong><?php echo count($cart_products); ?></strong>
                     </div>
 
                     <div class="d-flex justify-content-between mb-3">
                         <span>Subtotal</span>
-                        <strong>
-                            KSh <?php echo number_format($total, 2); ?>
-                        </strong>
+                        <strong>KSh <?php echo number_format($total, 2); ?></strong>
                     </div>
 
                     <hr>
@@ -571,14 +536,10 @@ function cartEscape($value) {
                         Proceed to Checkout
                         <i class="bi bi-arrow-right ms-1"></i>
                     </a>
-
                 </div>
             </div>
-
         </div>
-
     <?php endif; ?>
-
 </main>
 
 <footer>
@@ -591,6 +552,5 @@ function cartEscape($value) {
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
