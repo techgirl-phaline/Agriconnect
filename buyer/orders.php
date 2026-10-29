@@ -186,7 +186,7 @@ function e($value) {
 <td>
     <?php if ($order["payment_status"] === "paid"): ?>
 
-        <span class="badge text-bg-success">
+        <span class="badge text-bg-success mb-2">
             Payment Complete
         </span>
 
@@ -194,13 +194,23 @@ function e($value) {
 
         <a
             href="payment.php?order_id=<?= (int) $order["order_id"] ?>"
-            class="btn-green"
+            class="btn-green mb-2"
         >
             Pay Now
         </a>
 
     <?php endif; ?>
+
+    <a
+        href="receipt.php?order_id=<?= (int) $order["order_id"] ?>"
+        class="btn btn-outline-success btn-sm mt-1"
+    >
+        View / Print Receipt
+    </a>
 </td>
+
+
+
                         </tr>
 
                     <?php endwhile; ?>
