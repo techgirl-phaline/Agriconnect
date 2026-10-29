@@ -41,15 +41,34 @@ $result = $conn->query(
 );
 $product_count = (int) $result->fetch_assoc()['total'];
 
+// Count items in the shopping cart.
 $cart_count = 0;
+
 if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $quantity) {
         $cart_count += max(0, (int) $quantity);
     }
 }
 
+// Count this buyer's unpaid orders.
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total
+     FROM orders
+     WHERE buyer_id = ?
+       AND payment_status = 'unpaid'"
+);
+$stmt->bind_param("i", $buyer_id);
+$stmt->execute();
+$unpaid_orders = (int) $stmt->get_result()
+    ->fetch_assoc()['total'];
+$stmt->close();
+
 function e($value) {
-    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(
+        (string) ($value ?? ''),
+        ENT_QUOTES,
+        'UTF-8'
+    );
 }
 ?>
 <!DOCTYPE html>
@@ -60,8 +79,10 @@ function e($value) {
 
     <title>Buyer Dashboard | AgriConnect</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
     <style>
         :root {
@@ -133,6 +154,8 @@ function e($value) {
             border-radius: 8px;
             padding: 11px 20px;
             font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-yellow:hover {
@@ -214,6 +237,10 @@ function e($value) {
                 font-size: 1.7rem;
             }
 
+            .dashboard-card {
+                padding: 20px;
+            }
+
             .nav-link-custom {
                 margin-left: 10px;
                 font-size: .9rem;
@@ -254,10 +281,10 @@ function e($value) {
 
         <p class="mb-4">
             Discover fresh produce from farmers, shop for what you need,
-            and manage your orders conveniently with AgriConnect.
+            and manage your orders and payments conveniently with AgriConnect.
         </p>
 
-        <a href="products.php" class="btn btn-yellow">
+        <a href="../produce-catalogue.php" class="btn-yellow">
             🥬 Browse Produce
         </a>
     </section>
@@ -273,17 +300,19 @@ function e($value) {
     <?php else: ?>
 
         <div class="alert alert-success">
-            Your buyer account is approved. You can shop for available produce.
+            Your buyer account is approved.
+            You can shop for available produce.
         </div>
 
     <?php endif; ?>
 
-    <!-- Overview -->
+    <!-- Dashboard cards -->
     <h4 class="section-title mb-3">Your Shopping Dashboard</h4>
 
     <div class="row g-3">
 
-        <div class="col-md-4">
+        <!-- Browse Produce -->
+        <div class="col-md-6 col-lg-3">
             <div class="dashboard-card">
                 <div class="card-icon">🥬</div>
 
@@ -294,13 +323,14 @@ function e($value) {
                     before choosing what to buy.
                 </p>
 
-                <a href="products.php" class="btn-green">
+                <a href="../produce-catalogue.php" class="btn-green">
                     Shop Now →
                 </a>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <!-- Shopping Cart -->
+        <div class="col-md-6 col-lg-3">
             <div class="dashboard-card">
                 <div class="card-icon">🛒</div>
 
@@ -317,18 +347,39 @@ function e($value) {
             </div>
         </div>
 
-        <div class="col-md-4">
+        <!-- My Orders -->
+        <div class="col-md-6 col-lg-3">
             <div class="dashboard-card">
                 <div class="card-icon">📦</div>
 
                 <h5>My Orders</h5>
 
                 <p>
-                    View your orders and check their progress.
+                    View your orders, totals, delivery locations
+                    and order progress.
                 </p>
 
                 <a href="orders.php" class="btn-green">
                     View My Orders →
+                </a>
+            </div>
+        </div>
+
+        <!-- My Payments -->
+        <div class="col-md-6 col-lg-3">
+            <div class="dashboard-card">
+                <div class="card-icon">💳</div>
+
+                <h5>My Payments</h5>
+
+                <p>
+                    You have <?= $unpaid_orders ?>
+                    unpaid order(s). Review your order payment status
+                    and payment instructions.
+                </p>
+
+                <a href="orders.php" class="btn-green">
+                    View Payments →
                 </a>
             </div>
         </div>
@@ -346,12 +397,12 @@ function e($value) {
                 </h5>
 
                 <p class="mb-0">
-                    <?= $product_count ?> approved product listing(s)
-                    currently available.
+                    <?= $product_count ?>
+                    approved product listing(s) currently available.
                 </p>
             </div>
 
-            <a href="products.php" class="btn-green">
+            <a href="../produce-catalogue.php" class="btn-green">
                 Explore Produce →
             </a>
 

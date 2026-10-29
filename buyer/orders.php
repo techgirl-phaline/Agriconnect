@@ -132,6 +132,7 @@ function e($value) {
                         <th>Order Status</th>
                         <th>Payment</th>
                         <th>Delivery Location</th>
+                        <th>Actions</th>
                     </tr>
                     </thead>
 
@@ -175,13 +176,31 @@ function e($value) {
                                     )) ?>
                                 </span>
                             </td>
-
                             <td>
-                                <?= e(
-                                    $order["delivery_location"]
-                                    ?: "Not provided"
-                                ) ?>
-                            </td>
+    <?= e(
+        $order["delivery_location"]
+        ?: "Not provided"
+    ) ?>
+</td>
+
+<td>
+    <?php if ($order["payment_status"] === "paid"): ?>
+
+        <span class="badge text-bg-success">
+            Payment Complete
+        </span>
+
+    <?php else: ?>
+
+        <a
+            href="payment.php?order_id=<?= (int) $order["order_id"] ?>"
+            class="btn-green"
+        >
+            Pay Now
+        </a>
+
+    <?php endif; ?>
+</td>
                         </tr>
 
                     <?php endwhile; ?>

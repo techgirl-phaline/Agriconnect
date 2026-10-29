@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
 
                     if ($role === "buyer") {
-                        header("Location: index.php");
+                        header("Location: buyer/dashboard.php");
                         exit;
                     }
 
