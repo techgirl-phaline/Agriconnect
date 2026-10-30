@@ -149,17 +149,31 @@ try {
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .navbar {
-            background: var(--dark-green);
-            padding: 15px 0;
-        }
+         .navbar {
+    background: var(--dark-green);
+    padding: 8px 0;
+    min-height: 60px;
+}
 
-        .navbar-brand {
-            color: var(--white);
-            font-size: 23px;
-            font-weight: 800;
-        }
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--white) !important;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    padding: 0;
+    line-height: 1;
+}
 
+.brand-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
         .navbar-brand:hover {
             color: var(--yellow);
         }
@@ -423,8 +437,10 @@ try {
 
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="index.php">🌱 AgriConnect</a>
-
+       <a class="navbar-brand" href="index.php">
+    <img src="images/logo.png" alt="AgriConnect Logo" class="brand-logo">
+    <span>AgriConnect</span>
+</a>
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#mainNavbar"

@@ -198,26 +198,22 @@ function e($value) {
         }
 
         .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--white) !important;
-            font-size: 23px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--white) !important;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
 
-        .brand-icon {
-            width: 43px;
-            height: 43px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--yellow);
-            color: var(--dark-green);
-            border-radius: 12px;
-            font-size: 25px;
-        }
+.brand-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+    flex-shrink: 0;
+}
 
         .brand-name span {
             color: var(--yellow);
@@ -1325,12 +1321,12 @@ function e($value) {
     <div class="container">
 
         <a class="navbar-brand" href="index.php">
-            <span class="brand-icon">
-                <i class="bi bi-leaf-fill"></i>
-            </span>
-            <span class="brand-name">Agri<span>Connect</span></span>
-        </a>
+    <img src="images/logo.png"
+         alt="AgriConnect Logo"
+         class="brand-logo">
 
+    <span class="brand-name">Agri<span>Connect</span></span>
+</a>
         <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#mainNavigation"
