@@ -47,6 +47,34 @@ $site_name = "AgriConnect";
         a {
             text-decoration: none;
         }
+        .marquee-bar {
+    background: #FFF9C4;
+    color: #06452F;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.marquee-content {
+    display: flex;
+    width: max-content;
+    animation: marqueeScroll 25s linear infinite;
+}
+
+.marquee-content span {
+    padding-right: 60px;
+}
+
+@keyframes marqueeScroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
 
         /* NAVBAR */
         .main-navbar {
@@ -420,6 +448,14 @@ $site_name = "AgriConnect";
 </head>
 
 <body>
+    <!-- WELCOME MARQUEE -->
+<div class="marquee-bar">
+    <div class="marquee-content">
+        <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
+        <span>🌱 Support local farmers and enjoy fresh produce!</span>
+        <span>🚜 Growing Together, Connecting Markets!</span>
+    </div>
+</div>
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark main-navbar sticky-top">

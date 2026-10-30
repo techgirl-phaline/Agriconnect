@@ -148,6 +148,33 @@ try {
             color: var(--text-dark);
             font-family: Arial, Helvetica, sans-serif;
         }
+        .marquee-bar {
+    background: #FFF9C4;
+    color: var(--deep-green);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+.marquee-content {
+    display: flex;
+    width: max-content;
+    animation: marqueeScroll 25s linear infinite;
+}
+
+.marquee-content span {
+    padding-right: 60px;
+}
+
+@keyframes marqueeScroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
 
          .navbar {
     background: var(--dark-green);
@@ -434,6 +461,14 @@ try {
 </head>
 
 <body>
+    <!-- WELCOME MARQUEE -->
+<div class="marquee-bar">
+    <div class="marquee-content">
+        <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
+        <span>🌱 Support local farmers and enjoy fresh produce!</span>
+        <span>🚜 Growing Together, Connecting Markets!</span>
+    </div>
+</div>
 
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">

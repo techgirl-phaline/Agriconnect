@@ -185,7 +185,34 @@ function cartEscape($value) {
             --background: #F7FAF4;
             --border: #E2E9E1;
         }
+        .marquee-bar {
+    background: #FFF9C4;
+    color: #06452F;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 700;
+}
 
+.marquee-content {
+    display: flex;
+    width: max-content;
+    animation: marqueeScroll 25s linear infinite;
+}
+
+.marquee-content span {
+    padding-right: 60px;
+}
+
+@keyframes marqueeScroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
         body {
             background: var(--background);
             color: #25372D;
@@ -341,7 +368,14 @@ function cartEscape($value) {
     </style>
 </head>
 <body>
-
+    <!-- WELCOME MARQUEE -->
+<div class="marquee-bar">
+    <div class="marquee-content">
+        <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
+        <span>🌱 Support local farmers and enjoy fresh produce!</span>
+        <span>🚜 Growing Together, Connecting Markets!</span>
+    </div>
+</div>
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
         <a class="navbar-brand" href="../index.php">

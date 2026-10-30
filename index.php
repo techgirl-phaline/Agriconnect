@@ -261,7 +261,7 @@ function e($value) {
 /* WELCOME MARQUEE */
 
 .marquee-bar {
-    background: var(--yellow);
+    background: #FFF9C4;
     color: var(--deep-green);
     overflow: hidden;
     white-space: nowrap;
@@ -1315,7 +1315,24 @@ function e($value) {
 </head>
 
 <body>
+    <!-- WELCOME MARQUEE -->
+<div class="marquee-bar">
+    <div class="marquee-track">
+        <span>
+            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
+            Connecting Farmers and Buyers &nbsp; • &nbsp;
+            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
+            Supporting Local Agriculture &nbsp; • &nbsp;
+        </span>
 
+        <span aria-hidden="true">
+            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
+            Connecting Farmers and Buyers &nbsp; • &nbsp;
+            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
+            Supporting Local Agriculture &nbsp; • &nbsp;
+        </span>
+    </div>
+</div>
 <!-- NAVIGATION BAR -->
 <nav class="navbar navbar-expand-lg navbar-dark main-navbar sticky-top">
     <div class="container">
@@ -1439,25 +1456,6 @@ function e($value) {
 </nav>
 
 </nav>
-
-<!-- WELCOME MARQUEE -->
-<div class="marquee-bar">
-    <div class="marquee-track">
-        <span>
-            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
-            Connecting Farmers and Buyers &nbsp; • &nbsp;
-            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
-            Supporting Local Agriculture &nbsp; • &nbsp;
-        </span>
-
-        <span aria-hidden="true">
-            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
-            Connecting Farmers and Buyers &nbsp; • &nbsp;
-            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
-            Supporting Local Agriculture &nbsp; • &nbsp;
-        </span>
-    </div>
-</div>
 <!-- ANIMATED HERO SLIDER -->
 <section class="hero-section" id="about" aria-label="AgriConnect highlights">
 
