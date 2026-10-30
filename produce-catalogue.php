@@ -194,23 +194,62 @@ function escapeHTML($value) {
     font-weight: 700;
 }
 
-.marquee-content {
+/* WELCOME MARQUEE */
+.marquee-bar {
+    background: #FFF9C4;
+    color: #06452F;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1040;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.marquee-track {
     display: flex;
     width: max-content;
-    animation: marqueeScroll 25s linear infinite;
+    animation: agriMarquee 28s linear infinite;
 }
 
-.marquee-content span {
-    padding-right: 60px;
+.marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
 }
 
-@keyframes marqueeScroll {
+.marquee-group span {
+    padding: 0 30px;
+    flex-shrink: 0;
+}
+
+/* Continuous movement */
+@keyframes agriMarquee {
     from {
         transform: translateX(0);
     }
+
     to {
         transform: translateX(-50%);
     }
+}
+
+/* Keep marquee visible during scrolling */
+body {
+    padding-top: 40px;
+}
+
+/* Navbar stays below marquee */
+.main-navbar {
+    position: sticky;
+    top: 40px !important;
+    z-index: 1030;
 }
 
         /* NAVBAR */
@@ -591,10 +630,20 @@ function escapeHTML($value) {
 <body>
     <!-- WELCOME MARQUEE -->
 <div class="marquee-bar">
-    <div class="marquee-content">
-        <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
-        <span>🌱 Support local farmers and enjoy fresh produce!</span>
-        <span>🚜 Growing Together, Connecting Markets!</span>
+    <div class="marquee-track">
+
+        <div class="marquee-group">
+            <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
+            <span>🌱 Support local farmers and enjoy fresh produce!</span>
+            <span>🚜 Growing Together, Connecting Markets!</span>
+        </div>
+
+        <div class="marquee-group" aria-hidden="true">
+            <span>🌾 Welcome to AgriConnect — Connecting Farmers to Markets!</span>
+            <span>🌱 Support local farmers and enjoy fresh produce!</span>
+            <span>🚜 Growing Together, Connecting Markets!</span>
+        </div>
+
     </div>
 </div>
 

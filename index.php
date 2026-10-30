@@ -179,17 +179,22 @@ function e($value) {
         .navbar-toggler-icon {
             filter: brightness(0) invert(1);
         }
-        
-/* WELCOME MARQUEE */
-
+        /* WELCOME MARQUEE */
 .marquee-bar {
     background: #FFF9C4;
-    color: var(--deep-green);
+    color: #06452F;
     overflow: hidden;
     white-space: nowrap;
-    padding: 12px 0;
+    padding: 10px 0;
     font-size: 14px;
     font-weight: 700;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    z-index: 1030;
 }
 
 .marquee-track {
@@ -207,6 +212,7 @@ function e($value) {
     from {
         transform: translateX(0);
     }
+
     to {
         transform: translateX(-50%);
     }
@@ -220,6 +226,12 @@ function e($value) {
     .marquee-track {
         animation: none;
     }
+}
+
+/* Keep navbar below the marquee */
+.main-navbar {
+    top: 40px;
+    z-index: 1020;
 }
 
 /* ==========================================
