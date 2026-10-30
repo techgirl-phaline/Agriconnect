@@ -261,144 +261,330 @@ function e($value) {
         .navbar-toggler-icon {
             filter: brightness(0) invert(1);
         }
+        
+/* WELCOME MARQUEE */
 
-        /* HERO SECTION */
+.marquee-bar {
+    background: var(--yellow);
+    color: var(--deep-green);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: 700;
+}
 
-        .hero-section {
-            background: var(--soft-green);
-            padding: 76px 0 72px;
-            overflow: hidden;
-        }
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: agriMarquee 28s linear infinite;
+}
 
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #DCEBD5;
-            color: var(--dark-green);
-            padding: 8px 14px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 22px;
-        }
+.marquee-track span {
+    flex-shrink: 0;
+    padding-right: 30px;
+}
 
-        .hero-badge i {
-            color: var(--main-green);
-        }
+@keyframes agriMarquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
 
-        .hero-title {
-            color: var(--dark-green);
-            font-size: clamp(36px, 4.5vw, 57px);
-            line-height: 1.12;
-            font-weight: 800;
-            letter-spacing: -1.7px;
-            margin-bottom: 22px;
-        }
+.marquee-bar:hover .marquee-track {
+    animation-play-state: paused;
+}
 
-        .hero-title .highlight {
-            color: var(--main-green);
-        }
+@media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+        animation: none;
+    }
+}
 
-        .hero-description {
-            max-width: 520px;
-            color: #5F7165;
-            font-size: 16px;
-            margin-bottom: 28px;
-        }
+/* ==========================================
+   AGRICONNECT HERO SLIDER
+   ZOOM IN + SMOOTH CROSSF ADE
+========================================== */
 
-        .btn-primary-green {
-            background: var(--dark-green);
-            border: 2px solid var(--dark-green);
-            color: var(--white);
-            padding: 13px 23px;
-            border-radius: 7px;
-            font-size: 14px;
-            font-weight: 700;
-            transition: 0.2s;
-        }
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 72vh;
+    min-height: 540px;
+    max-height: 760px;
+    overflow: hidden;
+    isolation: isolate;
+   
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 60px 8%;
+    display: flex;
+    align-items: center;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 0;
+    transition: opacity 1.4s ease-in-out,
+                visibility 1.4s ease-in-out;
+}
 
-        .btn-primary-green:hover {
-            background: var(--deep-green);
-            border-color: var(--deep-green);
-            color: var(--white);
-            transform: translateY(-2px);
-        }
+.hero-slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+    animation: heroZoomIn 5.5s ease-out forwards;
+}
 
-        .btn-outline-green {
-            color: var(--dark-green);
-            border: 2px solid var(--dark-green);
-            padding: 13px 23px;
-            border-radius: 7px;
-            font-size: 14px;
-            font-weight: 700;
-        }
+@keyframes heroZoomIn {
+    from {
+        background-size: 100% 100%;
+    }
 
-        .btn-outline-green:hover {
-            background: var(--dark-green);
-            color: var(--white);
-        }
+    to {
+        background-size: 115% 115%;
+    }
+}
 
-        .hero-image-area {
-            position: relative;
-            min-height: 350px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+}
 
-        .hero-image-frame {
-            width: 100%;
-            max-width: 490px;
-            height: 345px;
-            overflow: hidden;
-            border-radius: 24px;
-            background: #DCEBD5;
-            border: 8px solid rgba(255,255,255,0.8);
-            box-shadow: var(--shadow);
-        }
+/* Each slide */
 
-        .hero-image-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 60px 8%;
+    display: flex;
+    align-items: center;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 0;
+    transition: opacity 1.4s ease-in-out,
+                visibility 1.4s ease-in-out;
+}
 
-        .hero-floating-card {
-            position: absolute;
-            left: -10px;
-            bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--white);
-            padding: 14px 18px;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-        }
+.hero-slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+    animation: heroZoomIn 5.5s ease-out forwards;
+}
 
-        .floating-icon {
-            width: 43px;
-            height: 43px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--yellow);
-            color: var(--dark-green);
-            border-radius: 10px;
-            font-size: 21px;
-        }
+@keyframes heroZoomIn {
+    from {
+        background-size: 100% 100%;
+    }
 
-        .floating-card-title {
-            font-weight: 800;
-            font-size: 14px;
-            color: var(--dark-green);
-        }
+    to {
+        background-size: 115% 115%;
+    }
+}
 
-        .floating-card-subtitle {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
+
+/* Hero buttons */
+.hero-content .btn {
+    position: relative;
+    z-index: 3;
+    padding: 13px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.hero-content .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Previous and next arrows */
+.hero-prev,
+.hero-next {
+    position: absolute;
+    top: 50%;
+    z-index: 5;
+
+    width: 48px;
+    height: 48px;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #ffffff;
+    background: rgba(68, 64, 64, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+
+    cursor: pointer;
+    transition:
+        background 0.25s ease,
+        transform 0.25s ease;
+}
+
+.hero-prev {
+    left: 24px;
+}
+
+.hero-next {
+    right: 24px;
+}
+
+.hero-prev:hover,
+.hero-next:hover {
+    background: #13804F;
+    transform: translateY(-50%) scale(1.08);
+}
+
+/* Slider navigation dots */
+.hero-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 25px;
+    z-index: 5;
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.hero-dot {
+    width: 11px;
+    height: 11px;
+    padding: 0;
+
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+
+    transition:
+        width 0.25s ease,
+        background 0.25s ease,
+        border-radius 0.25s ease;
+}
+
+.hero-dot.active {
+    width: 30px;
+    background: #F5CF32;
+    border-color: #F5CF32;
+    border-radius: 10px;
+}
+
+/* Tablet layout */
+@media (max-width: 992px) {
+    .hero-section {
+        height: 65vh;
+        min-height: 500px;
+    }
+
+    .hero-slide {
+        padding: 50px 7%;
+    }
+
+    .hero-content {
+        max-width: 650px;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 576px) {
+    .hero-section {
+        height: 72vh;
+        min-height: 520px;
+        max-height: 680px;
+    }
+
+    .hero-slide {
+        padding: 45px 24px 70px;
+        background-position: center;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(2rem, 9vw, 2.8rem);
+        line-height: 1.15;
+        letter-spacing: -0.5px;
+        margin-bottom: 18px;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 24px;
+    }
+
+    .hero-content .btn {
+        padding: 12px 18px;
+        margin-bottom: 8px;
+    }
+
+    .hero-prev,
+    .hero-next {
+        top: auto;
+        bottom: 17px;
+        width: 38px;
+        height: 38px;
+        transform: none;
+    }
+
+    .hero-prev {
+        left: 18px;
+    }
+
+    .hero-next {
+        right: 18px;
+    }
+
+    .hero-prev:hover,
+    .hero-next:hover {
+        transform: scale(1.05);
+    }
+
+    .hero-dots {
+        bottom: 30px;
+        gap: 7px;
+    }
+
+    .hero-dot {
+        width: 9px;
+        height: 9px;
+    }
+
+    .hero-dot.active {
+        width: 23px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .hero-slide,
+    .hero-slide.active,
+    .hero-content .btn,
+    .hero-prev,
+    .hero-next,
+    .hero-dot {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
 
         /* QUICK BENEFITS */
 
@@ -1239,33 +1425,55 @@ function e($value) {
     </div>
 </nav>
 
+</nav>
 
-<!-- HERO SECTION -->
-<section class="hero-section" id="about">
-    <div class="container">
-        <div class="row align-items-center g-4">
+<!-- WELCOME MARQUEE -->
+<div class="marquee-bar">
+    <div class="marquee-track">
+        <span>
+            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
+            Connecting Farmers and Buyers &nbsp; • &nbsp;
+            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
+            Supporting Local Agriculture &nbsp; • &nbsp;
+        </span>
 
-            <div class="col-lg-6">
+        <span aria-hidden="true">
+            🌱 Welcome to AgriConnect! &nbsp; • &nbsp;
+            Connecting Farmers and Buyers &nbsp; • &nbsp;
+            Fresh Produce, Direct from Farmers &nbsp; • &nbsp;
+            Supporting Local Agriculture &nbsp; • &nbsp;
+        </span>
+    </div>
+</div>
+<!-- ANIMATED HERO SLIDER -->
+<section class="hero-section" id="about" aria-label="AgriConnect highlights">
+
+    <!-- SLIDE 1 -->
+    <div class="hero-slide active"
+         style="background-image: url('images/farm.jpg');"
+         aria-hidden="false">
+
+        <div class="container">
+            <div class="hero-content">
 
                 <div class="hero-badge">
-                    <i class="bi bi-patch-check-fill"></i>
+                    <i class="bi bi-leaf-fill"></i>
                     YOUR TRUSTED FARMING MARKETPLACE
                 </div>
 
                 <h1 class="hero-title">
-                    Fresh from the Farm,
-                    <span class="highlight">Straight to You.</span>
+                    Welcome to <span class="highlight">AgriConnect</span>
                 </h1>
 
                 <p class="hero-description">
-                    AgriConnect brings farmers and buyers together.
-                    Discover fresh agricultural produce, connect directly
-                    with farmers and support local agriculture across Kenya.
+                    Connecting farmers with buyers. Discover fresh
+                    agricultural produce and support local farmers
+                    across Kenya.
                 </p>
 
-                <div class="d-flex flex-wrap gap-3">
+                <div class="hero-actions d-flex flex-wrap gap-3">
                     <a href="products.php" class="btn btn-primary-green">
-                        Explore Products
+                        Explore Produce
                         <i class="bi bi-arrow-right ms-1"></i>
                     </a>
 
@@ -1276,48 +1484,153 @@ function e($value) {
                 </div>
 
             </div>
+        </div>
+    </div>
 
-            <div class="col-lg-6">
+    <!-- SLIDE 2 -->
+    <div class="hero-slide"
+         style="background-image: url('images/banana .jpg');"
+         aria-hidden="true">
 
-                <div class="hero-image-area">
+        <div class="container">
+            <div class="hero-content">
 
-                    <div class="hero-image-frame">
-                        <img
-                            src="images/Agric image.avif"
-                            alt="Fresh agricultural produce from a local farm"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="hero-badge">
+                    <i class="bi bi-person-workspace"></i>
+                    FOR KENYAN FARMERS
+                </div>
 
-                        <div class="product-placeholder" style="display:none;">
-                            <i class="bi bi-image"></i>
-                            <span>Add your farm image</span>
-                            <small>images/farm-hero.jpg</small>
-                        </div>
-                    </div>
+                <h2 class="hero-title">
+                    Your Farm, <span class="highlight">Your Market</span>
+                </h2>
 
-                    <div class="hero-floating-card">
-                        <div class="floating-icon">
-                            <i class="bi bi-basket2-fill"></i>
-                        </div>
+                <p class="hero-description">
+                    Showcase your produce, reach more potential buyers
+                    and grow your farming business with AgriConnect.
+                </p>
 
-                        <div>
-                            <div class="floating-card-title">
-                                Fresh Farm Produce
-                            </div>
-                            <div class="floating-card-subtitle">
-                                Supporting Kenyan farmers
-                            </div>
-                        </div>
-                    </div>
+                <div class="hero-actions d-flex flex-wrap gap-3">
+                    <a href="farmer/register.php" class="btn btn-primary-green">
+                        Join as a Farmer
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
 
+                    <a href="farmer-profiles.php" class="btn btn-outline-green">
+                        Meet Our Farmers
+                    </a>
                 </div>
 
             </div>
-
         </div>
     </div>
+
+    <!-- SLIDE 3 -->
+    <div class="hero-slide"
+         style="background-image: url('images/farm.jpeg');"
+         aria-hidden="true">
+
+        <div class="container">
+            <div class="hero-content">
+
+                <div class="hero-badge">
+                    <i class="bi bi-basket2-fill"></i>
+                    FRESH FROM LOCAL FARMS
+                </div>
+
+                <h2 class="hero-title">
+                    Fresh from the Farm,
+                    <span class="highlight">Straight to You.</span>
+                </h2>
+
+                <p class="hero-description">
+                    Explore fresh fruits, vegetables and other farm
+                    produce listed by farmers on our marketplace.
+                </p>
+
+                <div class="hero-actions d-flex flex-wrap gap-3">
+                    <a href="products.php" class="btn btn-primary-green">
+                        Shop Fresh Produce
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+
+                    <a href="produce-catalogue.php" class="btn btn-outline-green">
+                        Browse Catalogue
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="hero-slide"
+         style="background-image: url('images/slide 4.jpeg');"
+         aria-hidden="true">
+
+        <div class="container">
+            <div class="hero-content">
+
+                <div class="hero-badge">
+                    <i class="bi bi-people-fill"></i>
+                    GROWING TOGETHER
+                </div>
+
+                <h2 class="hero-title">
+                    Together, We <span class="highlight">Grow Stronger</span>
+                </h2>
+
+                <p class="hero-description">
+                    Building connections between farmers and buyers
+                    while supporting local agriculture and communities
+                    throughout Kenya.
+                </p>
+
+                <div class="hero-actions d-flex flex-wrap gap-3">
+                    <a href="about.php" class="btn btn-primary-green">
+                        Discover Our Mission
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+
+                    <a href="register.php" class="btn btn-outline-green">
+                        Get Started
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PREVIOUS / NEXT CONTROLS -->
+    <button type="button"
+            class="hero-arrow hero-arrow-prev"
+            id="heroPrev"
+            aria-label="Previous slide">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <button type="button"
+            class="hero-arrow hero-arrow-next"
+            id="heroNext"
+            aria-label="Next slide">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+
+    <!-- SLIDE DOTS -->
+    <div class="hero-indicators" aria-label="Choose a slide">
+        <button type="button" class="hero-dot active"
+                aria-label="Show slide 1" aria-current="true"></button>
+
+        <button type="button" class="hero-dot"
+                aria-label="Show slide 2"></button>
+
+        <button type="button" class="hero-dot"
+                aria-label="Show slide 3"></button>
+
+        <button type="button" class="hero-dot"
+                aria-label="Show slide 4"></button>
+    </div>
+
 </section>
-
-
 <!-- BENEFITS STRIP -->
 <section class="benefit-strip">
     <div class="container">
@@ -2074,6 +2387,98 @@ function e($value) {
                     : "none";
         });
     });
+    // AgriConnect animated hero slider
+(function () {
+    const hero = document.querySelector(".hero-section");
+    if (!hero) return;
+
+    const slides = Array.from(hero.querySelectorAll(".hero-slide"));
+    const dots = Array.from(hero.querySelectorAll(".hero-dot"));
+    const previousButton = document.getElementById("heroPrev");
+    const nextButton = document.getElementById("heroNext");
+
+    if (slides.length === 0) return;
+
+    let currentSlide = 0;
+    let sliderTimer = null;
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    function showSlide(index) {
+        currentSlide = (index + slides.length) % slides.length;
+
+        slides.forEach(function (slide, i) {
+            const isActive = i === currentSlide;
+
+            slide.classList.toggle("active", isActive);
+            slide.setAttribute("aria-hidden", String(!isActive));
+        });
+
+        dots.forEach(function (dot, i) {
+            const isActive = i === currentSlide;
+
+            dot.classList.toggle("active", isActive);
+
+            if (isActive) {
+                dot.setAttribute("aria-current", "true");
+            } else {
+                dot.removeAttribute("aria-current");
+            }
+        });
+    }
+
+    function stopAutoSlide() {
+        if (sliderTimer !== null) {
+            clearInterval(sliderTimer);
+            sliderTimer = null;
+        }
+    }
+
+    function startAutoSlide() {
+        stopAutoSlide();
+
+        if (reducedMotion.matches || document.hidden) return;
+
+        sliderTimer = setInterval(function () {
+            showSlide(currentSlide + 1);
+        }, 5500);
+    }
+
+    previousButton.addEventListener("click", function () {
+        showSlide(currentSlide - 1);
+        startAutoSlide();
+    });
+
+    nextButton.addEventListener("click", function () {
+        showSlide(currentSlide + 1);
+        startAutoSlide();
+    });
+
+    dots.forEach(function (dot, index) {
+        dot.addEventListener("click", function () {
+            showSlide(index);
+            startAutoSlide();
+        });
+    });
+
+    hero.addEventListener("mouseenter", stopAutoSlide);
+    hero.addEventListener("mouseleave", startAutoSlide);
+
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            stopAutoSlide();
+        } else {
+            startAutoSlide();
+        }
+    });
+
+    reducedMotion.addEventListener("change", startAutoSlide);
+
+    showSlide(0);
+    startAutoSlide();
+})();
 </script>
 
 </body>
