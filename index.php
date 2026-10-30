@@ -100,28 +100,6 @@ if (empty($products)) {
 }
 
 /*
- * Load approved testimonials.
- */
-$testimonials = [];
-
-$testimonial_sql = "
-    SELECT t.message, t.rating, u.full_name
-    FROM testimonials t
-    INNER JOIN users u ON t.user_id = u.user_id
-    WHERE t.status = 'approved'
-    ORDER BY t.created_at DESC
-    LIMIT 3
-";
-
-$testimonial_result = $conn->query($testimonial_sql);
-
-if ($testimonial_result) {
-    while ($row = $testimonial_result->fetch_assoc()) {
-        $testimonials[] = $row;
-    }
-}
-
-/*
  * Escape text before displaying database values in HTML.
  */
 function e($value) {
@@ -2329,134 +2307,86 @@ function e($value) {
 
 <!-- TESTIMONIALS -->
 <section class="section-padding testimonials-section" id="testimonials">
-
     <div class="container">
-
         <div class="text-center mb-5">
-
-    <span class="section-label">Community Voices</span>
-
-    <h2 class="section-heading">What Our Community Says</h2>
-
-    <p class="section-description">
-        We aim to make discovering and trading agricultural
-        produce easier for farmers and buyers.
-    </p>
-
-</div>
-
-        <div class="row g-4">
-            <?php $loop_index = 0; ?>
-            <?php if (!empty($testimonials)): ?>
-
-                <?php foreach ($testimonials as $testimonial): ?>
-
-                    <div class="col-md-4">
-
-                        <div class="testimonial-card">
-
-                            <div class="testimonial-stars">
-                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                    <i class="bi <?= $i <= (int)$testimonial['rating']
-                                        ? 'bi-star-fill'
-                                        : 'bi-star' ?>"></i>
-                                <?php endfor; ?>
-                            </div>
-
-                            <p class="testimonial-message">
-                                "<?= e($testimonial['message']) ?>"
-                            </p>
-
-                            <div class="d-flex align-items-center gap-3">
-                                <img
-    src="images/testimonials/farmer-<?= $loop_index + 1 ?>.jpg"
-    alt="<?= e($testimonial['full_name']) ?>"
-    class="testimonial-avatar">
-                                <div>
-                                    <div class="testimonial-name">
-                                        <?= e($testimonial['full_name']) ?>
-                                    </div>
-                                    <div class="testimonial-role">
-                                        AgriConnect community member
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                    <?php $loop_index++; ?>
-                <?php endforeach; ?>
-
-            <?php else: ?>
-
-                <div class="col-md-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-stars">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-
-                        <p class="testimonial-message">
-                            "AgriConnect aims to make it easier to discover
-                            fresh agricultural produce from local farms."
-                        </p>
-
-                        <div class="testimonial-name">Our Mission</div>
-                        <div class="testimonial-role">Supporting local agriculture</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-stars">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-
-                        <p class="testimonial-message">
-                            "Our goal is to help farmers showcase their
-                            produce and reach more potential buyers."
-                        </p>
-
-                        <div class="testimonial-name">Our Vision</div>
-                        <div class="testimonial-role">Connecting farmers and markets</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="testimonial-card">
-                        <div class="testimonial-stars">
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-
-                        <p class="testimonial-message">
-                            "We want agricultural marketplace information
-                            to be simple, accessible and useful."
-                        </p>
-
-                        <div class="testimonial-name">Our Commitment</div>
-                        <div class="testimonial-role">A user-friendly marketplace</div>
-                    </div>
-                </div>
-
-            <?php endif; ?>
-
+            <span class="section-label">Community Voices</span>
+            <h2 class="section-heading">What Our Community Says</h2>
+            <p class="section-description">
+                We aim to make discovering and trading agricultural
+                produce easier for farmers and buyers.
+            </p>
         </div>
 
-    </div>
+        <div class="row g-4">
 
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-message">
+                        "AgriConnect makes it easier to showcase my farm produce and connect with potential buyers."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="images/user 1jpeg.jpeg" alt="Dennis Okindo" class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-name">Dennis Okindo</div>
+                            <div class="testimonial-role">Farmer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-message">
+                        "The platform creates a great opportunity for farmers to reach more customers and grow their businesses."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="images/user 2.jpg" alt="Zipporah Araka" class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-name">Zipporah Araka</div>
+                            <div class="testimonial-role">Farmer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-message">
+                        "Finding fresh agricultural produce from local farmers is now easier and more convenient."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="images/user 3.jpeg" alt="Zawadi Zenka" class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-name">Zawadi Zenka</div>
+                            <div class="testimonial-role">Buyer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </section>
 <!-- OUR REACH / FARMING REGIONS -->
 <section class="section-padding branches-section" id="branches">
