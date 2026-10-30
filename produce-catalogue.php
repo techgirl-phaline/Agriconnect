@@ -36,7 +36,6 @@ try {
     $sql = "SELECT
                 p.product_id,
                 p.product_name,
-                p.description,
                 p.price,
                 p.unit,
                 p.quantity_available,
@@ -59,7 +58,6 @@ try {
     if ($search !== "") {
         $sql .= " AND (
                     p.product_name LIKE ?
-                    OR p.description LIKE ?
                     OR c.category_name LIKE ?
                     OR fp.farm_name LIKE ?
                     OR fp.county LIKE ?
@@ -134,9 +132,9 @@ $sql .= " ORDER BY p.created_at DESC";
 
 } catch (Throwable $e) {
     error_log("AgriConnect catalogue error: " . $e->getMessage());
-    $error_message = "We could not load the catalogue. Please check your database setup.";
-}
 
+    $error_message = "Database Error: " . $e->getMessage();
+}
 function escapeHTML($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, "UTF-8");
 }
@@ -475,14 +473,6 @@ body {
             font-weight: 800;
             margin-bottom: 8px;
         }
-
-        .product-description {
-            color: var(--text-muted);
-            font-size: 14px;
-            min-height: 42px;
-            margin-bottom: 14px;
-        }
-
         .product-price {
             color: var(--main-green);
             font-size: 23px;
@@ -499,12 +489,6 @@ body {
             font-size: 13px;
             margin-top: 12px;
         }
-
-        .product-info i {
-            color: var(--main-green);
-            margin-right: 5px;
-        }
-
         .enquire-btn {
             display: block;
             text-align: center;
@@ -979,18 +963,6 @@ $valid_image = $image_filename !== ""
                                 <h3 class="product-name">
                                     <?php echo escapeHTML($product['product_name']); ?>
                                 </h3>
-
-                                <p class="product-description">
-                                    <?php
-                                    $description = trim((string)($product['description'] ?? ''));
-                                    echo escapeHTML(
-                                        $description !== ""
-                                            ? mb_strimwidth($description, 0, 85, "...")
-                                            : "Fresh agricultural produce from a local farmer."
-                                    );
-                                    ?>
-                                </p>
-
                                 <div>
                                     <span class="product-price">
                                         KSh <?php echo number_format((float)$product['price'], 2); ?>
