@@ -889,185 +889,280 @@ function e($value) {
             background: var(--deep-green);
             color: var(--white);
         }
+        /* SPLIT SCREEN PRESENTATION */
 
-        /* HOW IT WORKS */
+.presentation-slides {
+    position: relative;
+    min-height: 500px;
+    background: #FFFFFF;
+    overflow: hidden;
+    perspective: 1400px;
+}
 
-        .steps-section {
-            background: var(--white);
-        }
+.presentation-slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 44% 56%;
+    min-height: 500px;
+    opacity: 0;
+    visibility: hidden;
+    transform: rotateY(-80deg);
+    transform-origin: left center;
+    transition: all 0.9s ease;
+    pointer-events: none;
+}
 
-        .step-card {
-            height: 100%;
-            padding: 27px 22px;
-            text-align: center;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-        }
+.presentation-slide.active {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    transform: rotateY(0deg);
+    pointer-events: auto;
+    z-index: 2;
+}
 
-        .step-number {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 19px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--yellow);
-            color: var(--dark-green);
-            border-radius: 17px;
-            font-size: 25px;
-        }
+/* LEFT IMAGE */
 
-        .step-card h3 {
-            color: var(--dark-green);
-            font-size: 17px;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
+.presentation-image {
+    position: relative;
+    height: 100%;
+    min-height: 500px;
+    overflow: hidden;
+    border: none;
+    border-radius: 0;
+    clip-path: ellipse(100% 100% at 0% 50%);
+}
 
-        .step-card p {
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 0;
-        }
+.presentation-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+    transition: transform 1s ease;
+}
 
-        /* ABOUT / CTA */
+.presentation-slide.active .presentation-image img {
+    transform: scale(1.06);
+}
 
-        .cta-section {
-            padding: 55px 0;
-            background: var(--soft-green);
-        }
+/* RIGHT CONTENT */
 
-        .cta-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 25px;
-            padding: 35px;
-            border-radius: 15px;
-            background: var(--dark-green);
-        }
+.presentation-content {
+    padding: 45px 45px 35px 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #FFFFFF;
+}
 
-        .cta-box h2 {
-            color: var(--white);
-            font-size: 27px;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
+.presentation-content h3 {
+    color: #075B3D;
+    font-size: clamp(27px, 3vw, 38px);
+    font-weight: 800;
+    margin-bottom: 28px;
+}
 
-        .cta-box p {
-            color: rgba(255,255,255,0.78);
-            font-size: 13px;
-            margin-bottom: 0;
-        }
+/* INFORMATION POINTS */
 
-        .btn-yellow {
-            flex-shrink: 0;
-            background: var(--yellow);
-            color: var(--dark-green);
-            border: 2px solid var(--yellow);
-            padding: 13px 21px;
-            border-radius: 7px;
-            font-size: 13px;
-            font-weight: 800;
-        }
+.presentation-points {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+}
 
-        .btn-yellow:hover {
-            background: #FFE36B;
-            color: var(--dark-green);
-        }
+.presentation-point {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-        /* TESTIMONIALS */
+.point-icon {
+    flex-shrink: 0;
+    width: 65px;
+    height: 65px;
+    border: 6px solid;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    background: white;
+}
 
-        .testimonials-section {
-            background: var(--white);
-        }
+.point-icon.orange {
+    border-color: #F5A623;
+    color: #075B3D;
+}
 
-        .testimonial-card {
-            height: 100%;
-            padding: 24px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: var(--white);
-        }
+.point-icon.green {
+    border-color: #13804F;
+    color: #075B3D;
+}
 
-        .testimonial-stars {
-            color: #E4B800;
-            margin-bottom: 14px;
-        }
+.presentation-point p {
+    color: #454545;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+}
 
-        .testimonial-message {
-            color: #58675D;
-            font-size: 13px;
-            font-style: italic;
-            margin-bottom: 19px;
-        }
+/* POINT ANIMATION */
 
-        .testimonial-name {
-            color: var(--dark-green);
-            font-size: 13px;
-            font-weight: 800;
-        }
+.presentation-slide.active .presentation-point {
+    animation: pointAppear 0.7s ease both;
+}
 
-        .testimonial-role {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
+.presentation-slide.active .presentation-point:nth-child(2) {
+    animation-delay: 0.15s;
+}
 
-        .testimonial-avatar {
-            width: 39px;
-            height: 39px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--soft-green);
-            color: var(--dark-green);
-            border-radius: 50%;
-            font-weight: 800;
-        }
+.presentation-slide.active .presentation-point:nth-child(3) {
+    animation-delay: 0.3s;
+}
 
-        /* BRANCHES */
+.presentation-slide.active .presentation-point:nth-child(4) {
+    animation-delay: 0.45s;
+}
 
-        .branches-section {
-            background: var(--pale-green);
-        }
+@keyframes pointAppear {
+    from {
+        opacity: 0;
+        transform: translateX(35px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
-        .branch-card {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            height: 100%;
-            padding: 21px;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-        }
+/* MOBILE */
 
-        .branch-icon {
-            width: 43px;
-            height: 43px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            background: var(--yellow);
-            color: var(--dark-green);
-            border-radius: 10px;
-            font-size: 20px;
-        }
+@media (max-width: 767px) {
+    .presentation-slide,
+    .presentation-slide.active {
+        grid-template-columns: 1fr;
+    }
 
-        .branch-card h3 {
-            color: var(--dark-green);
-            font-size: 15px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
+    .presentation-image {
+        min-height: 230px;
+        height: 230px;
+        clip-path: ellipse(100% 100% at 50% 0%);
+    }
 
-        .branch-card p {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-bottom: 0;
-        }
+    .presentation-content {
+        padding: 25px 20px;
+    }
+
+    .presentation-content h3 {
+        font-size: 26px;
+    }
+
+    .presentation-point {
+        gap: 13px;
+    }
+
+    .point-icon {
+        width: 53px;
+        height: 53px;
+        font-size: 20px;
+        border-width: 4px;
+    }
+
+    .presentation-point p {
+        font-size: 13px;
+    }
+
+    .presentation-points {
+        gap: 18px;
+    }
+}
+
+/* ==========================================
+   FARMER CALL TO ACTION
+========================================== */
+
+.cta-section {
+    background: #F7FAF4;
+    padding: 65px 0;
+}
+
+.cta-box {
+    background: linear-gradient(135deg, #075B3D, #13804F);
+    border-radius: 14px;
+    padding: 40px 45px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    box-shadow: 0 10px 30px rgba(7, 91, 61, 0.12);
+}
+
+.cta-box h2 {
+    color: #FFFFFF;
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.cta-box p {
+    color: #E4F1E9;
+    font-size: 14px;
+    line-height: 1.8;
+    max-width: 650px;
+    margin-bottom: 0;
+}
+
+.btn-yellow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #F5CF32;
+    color: #06452F;
+    border: 2px solid #F5CF32;
+    border-radius: 7px;
+    padding: 13px 22px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.btn-yellow:hover {
+    background: #FFFFFF;
+    border-color: #FFFFFF;
+    color: #06452F;
+    transform: translateY(-3px);
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* RESPONSIVE CTA */
+
+@media (max-width: 767px) {
+    .cta-section {
+        padding: 45px 0;
+    }
+
+    .cta-box {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 28px 23px;
+    }
+
+    .cta-box h2 {
+        font-size: 23px;
+    }
+
+    .cta-box p {
+        font-size: 13px;
+    }
+
+    .btn-yellow {
+        width: 100%;
+    }
+}
 
         /* FOOTER */
 
@@ -1892,78 +1987,198 @@ function e($value) {
 
     </div>
 </section>
+<!-- AGRICONNECT PRESENTATION -->
+<div class="steps-presentation" id="agriPresentation">
 
+    <div class="presentation-top">
+        <div class="presentation-label">
+            <i class="bi bi-easel2-fill me-2"></i>
+            THE AGRICONNECT JOURNEY
+        </div>
+        <div class="presentation-counter" id="presentationCounter">
+            01 / 04
+        </div>
+    </div>
 
-<!-- HOW IT WORKS -->
-<section class="section-padding steps-section" id="how-it-works">
+    <div class="presentation-slides">
 
-    <div class="container">
+        <!-- SLIDE 1 -->
+        <div class="presentation-slide active">
 
-        <div class="text-center mb-5">
-            <span class="section-label">Simple and Convenient</span>
+            <div class="presentation-image">
+                <img src="images/connect.jpg" alt="Farmer working in a field">
+            </div>
 
-            <h2 class="section-heading">How AgriConnect Works</h2>
+            <div class="presentation-content">
+                <h3>Create Your Account</h3>
 
-            <p class="section-description">
-                Our marketplace makes it easier for farmers to display
-                their produce and for buyers to discover available products.
-            </p>
+                <div class="presentation-points">
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-person-plus"></i></div>
+                        <p>Register as a farmer or buyer and join the AgriConnect community.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-person-check"></i></div>
+                        <p>Create your personal account with the required registration details.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-person-badge"></i></div>
+                        <p>Farmers can create profiles to introduce themselves and their farms.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-shield-check"></i></div>
+                        <p>Access your account securely and manage your activities.</p>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
-        <div class="row g-4">
+        <!-- SLIDE 2 -->
+        <div class="presentation-slide">
 
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-number">
-                        <i class="bi bi-person-plus"></i>
-                    </div>
-
-                    <h3>1. Create an Account</h3>
-
-                    <p>
-                        Register as a farmer to list your produce or as a
-                        buyer to explore agricultural products.
-                    </p>
-                </div>
+            <div class="presentation-image">
+                <img src="images/fresh produce.jpg" alt="Fresh maize produce">
             </div>
 
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-number">
-                        <i class="bi bi-search"></i>
+            <div class="presentation-content">
+                <h3>Discover Fresh Produce</h3>
+
+                <div class="presentation-points">
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-basket"></i></div>
+                        <p>Explore a variety of agricultural products listed by local farmers.</p>
                     </div>
 
-                    <h3>2. Discover Produce</h3>
-
-                    <p>
-                        Browse available products, compare prices and
-                        find produce that suits your needs.
-                    </p>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-number">
-                        <i class="bi bi-handshake"></i>
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-search"></i></div>
+                        <p>Search for fruits, vegetables, cereals and other farm products.</p>
                     </div>
 
-                    <h3>3. Connect and Order</h3>
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-tags"></i></div>
+                        <p>View product descriptions, prices and available quantities.</p>
+                    </div>
 
-                    <p>
-                        Find product information and use the marketplace's
-                        ordering features to request available produce.
-                    </p>
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-shop"></i></div>
+                        <p>Discover products directly from farmers and their profiles.</p>
+                    </div>
+
                 </div>
             </div>
+        </div>
 
+        <!-- SLIDE 3 -->
+        <div class="presentation-slide">
+
+            <div class="presentation-image">
+                <img src="images/choose image.jpg" alt="Fresh tomatoes">
+            </div>
+
+            <div class="presentation-content">
+                <h3>Choose What You Need</h3>
+
+                <div class="presentation-points">
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-cart-plus"></i></div>
+                        <p>Select the agricultural products you want to purchase.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-calculator"></i></div>
+                        <p>Check product prices and choose the quantities you need.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-clipboard-check"></i></div>
+                        <p>Review your selected products before confirming your order.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-receipt"></i></div>
+                        <p>Submit your order and keep track of your purchase details.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4 -->
+        <div class="presentation-slide">
+
+            <div class="presentation-image">
+                <img src="images/connect1.jpg" alt="Agricultural farm">
+            </div>
+
+            <div class="presentation-content">
+                <h3>Connect and Grow Together</h3>
+
+                <div class="presentation-points">
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-people"></i></div>
+                        <p>Bring farmers and buyers together through one marketplace.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-chat-dots"></i></div>
+                        <p>Make it easier for farmers and buyers to connect.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon orange"><i class="bi bi-graph-up-arrow"></i></div>
+                        <p>Create opportunities for farmers to reach more customers.</p>
+                    </div>
+
+                    <div class="presentation-point">
+                        <div class="point-icon green"><i class="bi bi-heart"></i></div>
+                        <p>Support local agriculture and strengthen farming communities.</p>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
     </div>
 
-</section>
+    <!-- PROGRESS -->
+    <div class="presentation-progress">
+        <div class="presentation-progress-bar" id="presentationProgress"></div>
+    </div>
 
+    <!-- CONTROLS -->
+    <div class="presentation-controls">
 
+        <div class="presentation-navigation">
+            <button type="button" class="presentation-nav-btn" id="presentationPrev">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <button type="button" class="presentation-nav-btn" id="presentationNext">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+
+            <button type="button" class="presentation-play-btn" id="presentationPlay">
+                <i class="bi bi-pause-fill"></i>
+            </button>
+        </div>
+
+        <div class="presentation-dots">
+            <button class="presentation-dot active" type="button"></button>
+            <button class="presentation-dot" type="button"></button>
+            <button class="presentation-dot" type="button"></button>
+            <button class="presentation-dot" type="button"></button>
+        </div>
+
+    </div>
+</div>
 <!-- FARMER CALL TO ACTION -->
 <section class="cta-section">
     <div class="container">
@@ -2454,7 +2669,7 @@ function e($value) {
 
         sliderTimer = setInterval(function () {
             showSlide(currentSlide + 1);
-        }, 5500);
+        }, 3000);
     }
 
     previousButton.addEventListener("click", function () {
@@ -2489,6 +2704,206 @@ function e($value) {
 
     showSlide(0);
     startAutoSlide();
+})();
+// ==========================================
+// AGRICONNECT POWERPOINT-STYLE PRESENTATION
+// ==========================================
+
+(function () {
+
+    const presentation = document.getElementById("agriPresentation");
+
+    if (!presentation) return;
+
+    const slides = Array.from(
+        presentation.querySelectorAll(".presentation-slide")
+    );
+
+    const dots = Array.from(
+        presentation.querySelectorAll(".presentation-dot")
+    );
+
+    const previousButton = document.getElementById("presentationPrev");
+    const nextButton = document.getElementById("presentationNext");
+    const playButton = document.getElementById("presentationPlay");
+
+    const counter = document.getElementById("presentationCounter");
+    const progress = document.getElementById("presentationProgress");
+
+    let currentSlide = 0;
+    let autoPlay = true;
+    let presentationTimer = null;
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    function showPresentationSlide(index) {
+
+        currentSlide = (index + slides.length) % slides.length;
+
+        slides.forEach(function (slide, i) {
+
+            const active = i === currentSlide;
+
+            slide.classList.toggle("active", active);
+            slide.setAttribute("aria-hidden", String(!active));
+
+        });
+
+        dots.forEach(function (dot, i) {
+
+            const active = i === currentSlide;
+
+            dot.classList.toggle("active", active);
+
+            if (active) {
+                dot.setAttribute("aria-current", "true");
+            } else {
+                dot.removeAttribute("aria-current");
+            }
+
+        });
+
+        counter.textContent =
+            String(currentSlide + 1).padStart(2, "0") +
+            " / " +
+            String(slides.length).padStart(2, "0");
+
+        progress.style.width =
+            ((currentSlide + 1) / slides.length * 100) + "%";
+
+    }
+
+    function stopPresentation() {
+
+        if (presentationTimer !== null) {
+            clearInterval(presentationTimer);
+            presentationTimer = null;
+        }
+
+    }
+
+    function startPresentation() {
+
+        stopPresentation();
+
+        if (!autoPlay || reducedMotion.matches || document.hidden) {
+            return;
+        }
+
+        presentationTimer = setInterval(function () {
+            showPresentationSlide(currentSlide + 1);
+        }, 6500);
+
+    }
+
+    function updatePlayButton() {
+
+        const icon = playButton.querySelector("i");
+
+        if (autoPlay) {
+
+            icon.className = "bi bi-pause-fill";
+
+            playButton.setAttribute(
+                "aria-label",
+                "Pause presentation"
+            );
+
+        } else {
+
+            icon.className = "bi bi-play-fill";
+
+            playButton.setAttribute(
+                "aria-label",
+                "Play presentation"
+            );
+
+        }
+
+    }
+
+    previousButton.addEventListener("click", function () {
+
+        showPresentationSlide(currentSlide - 1);
+
+        startPresentation();
+
+    });
+
+    nextButton.addEventListener("click", function () {
+
+        showPresentationSlide(currentSlide + 1);
+
+        startPresentation();
+
+    });
+
+    dots.forEach(function (dot, index) {
+
+        dot.addEventListener("click", function () {
+
+            showPresentationSlide(index);
+
+            startPresentation();
+
+        });
+
+    });
+
+    playButton.addEventListener("click", function () {
+
+        autoPlay = !autoPlay;
+
+        updatePlayButton();
+
+        startPresentation();
+
+    });
+
+    // Keyboard navigation
+    document.addEventListener("keydown", function (event) {
+
+        const rect = presentation.getBoundingClientRect();
+
+        const isVisible =
+            rect.top < window.innerHeight &&
+            rect.bottom > 0;
+
+        if (!isVisible) return;
+
+        if (event.key === "ArrowRight") {
+
+            showPresentationSlide(currentSlide + 1);
+            startPresentation();
+
+        } else if (event.key === "ArrowLeft") {
+
+            showPresentationSlide(currentSlide - 1);
+            startPresentation();
+
+        }
+
+    });
+
+    // Pause when the browser tab is hidden
+    document.addEventListener("visibilitychange", function () {
+
+        if (document.hidden) {
+            stopPresentation();
+        } else {
+            startPresentation();
+        }
+
+    });
+
+    reducedMotion.addEventListener("change", startPresentation);
+
+    showPresentationSlide(0);
+    updatePlayButton();
+    startPresentation();
+
 })();
 </script>
 
