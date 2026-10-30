@@ -1169,28 +1169,19 @@ function e($value) {
     background: #F7FAF4;
 }
 
-.testimonial-heading-image {
-    width: 100px;
-    height: 75px;
-    object-fit: cover;
-    border-radius: 12px;
-    margin-bottom: 18px;
-    border: 3px solid #F5CF32;
-}
-
 .testimonial-card {
     height: 100%;
     background: #FFFFFF;
     border: 1px solid #E2E9E1;
-    border-radius: 12px;
-    padding: 25px;
+    border-radius: 15px;
+    padding: 28px 24px;
     box-shadow: 0 5px 20px rgba(7, 91, 61, 0.06);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(7, 91, 61, 0.10);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(7, 91, 61, 0.11);
 }
 
 .testimonial-stars {
@@ -1208,16 +1199,11 @@ function e($value) {
 }
 
 .testimonial-avatar {
-    width: 43px;
-    height: 43px;
+    width: 58px;
+    height: 58px;
+    object-fit: cover;
     border-radius: 50%;
-    background: #EAF3E9;
-    color: #075B3D;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    font-weight: 800;
+    border: 3px solid #EAF3E9;
     flex-shrink: 0;
 }
 
@@ -2360,7 +2346,7 @@ function e($value) {
 </div>
 
         <div class="row g-4">
-
+            <?php $loop_index = 0; ?>
             <?php if (!empty($testimonials)): ?>
 
                 <?php foreach ($testimonials as $testimonial): ?>
@@ -2382,11 +2368,10 @@ function e($value) {
                             </p>
 
                             <div class="d-flex align-items-center gap-3">
-
-                                <div class="testimonial-avatar">
-                                    <?= e(strtoupper(substr($testimonial['full_name'], 0, 1))) ?>
-                                </div>
-
+                                <img
+    src="images/testimonials/farmer-<?= $loop_index + 1 ?>.jpg"
+    alt="<?= e($testimonial['full_name']) ?>"
+    class="testimonial-avatar">
                                 <div>
                                     <div class="testimonial-name">
                                         <?= e($testimonial['full_name']) ?>
@@ -2401,7 +2386,7 @@ function e($value) {
                         </div>
 
                     </div>
-
+                    <?php $loop_index++; ?>
                 <?php endforeach; ?>
 
             <?php else: ?>
