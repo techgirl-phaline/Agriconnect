@@ -317,6 +317,7 @@ function e($value) {
     max-height: 760px;
     overflow: hidden;
     isolation: isolate;
+    }
    
 .hero-slide {
     position: absolute;
@@ -570,6 +571,22 @@ function e($value) {
     .hero-dot.active {
         width: 23px;
     }
+}
+/* HERO TEXT COLOURS */
+.hero-badge {
+    color: #F5CF32;
+}
+
+.hero-title {
+    color: #FFFFFF;
+}
+
+.hero-title .highlight {
+    color: #F5CF32;
+}
+
+.hero-description {
+    color: #FFFFFF;
 }
 
 /* Accessibility */
