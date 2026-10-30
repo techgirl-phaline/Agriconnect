@@ -1163,6 +1163,75 @@ function e($value) {
         width: 100%;
     }
 }
+/* TESTIMONIALS SECTION */
+
+.testimonials-section {
+    background: #F7FAF4;
+}
+
+.testimonial-heading-image {
+    width: 100px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    border: 3px solid #F5CF32;
+}
+
+.testimonial-card {
+    height: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E2E9E1;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(7, 91, 61, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(7, 91, 61, 0.10);
+}
+
+.testimonial-stars {
+    color: #E8B900;
+    font-size: 15px;
+    margin-bottom: 17px;
+}
+
+.testimonial-message {
+    color: #526057;
+    font-size: 14px;
+    line-height: 1.8;
+    min-height: 100px;
+    margin-bottom: 22px;
+}
+
+.testimonial-avatar {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background: #EAF3E9;
+    color: #075B3D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.testimonial-name {
+    color: #075B3D;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.testimonial-role {
+    color: #7A857D;
+    font-size: 11px;
+    margin-top: 3px;
+}
 
         /* FOOTER */
 
@@ -2211,15 +2280,17 @@ function e($value) {
     <div class="container">
 
         <div class="text-center mb-5">
-            <span class="section-label">Community Voices</span>
 
-            <h2 class="section-heading">What Our Community Says</h2>
+    <span class="section-label">Community Voices</span>
 
-            <p class="section-description">
-                We aim to make discovering and trading agricultural
-                produce easier for farmers and buyers.
-            </p>
-        </div>
+    <h2 class="section-heading">What Our Community Says</h2>
+
+    <p class="section-description">
+        We aim to make discovering and trading agricultural
+        produce easier for farmers and buyers.
+    </p>
+
+</div>
 
         <div class="row g-4">
 
