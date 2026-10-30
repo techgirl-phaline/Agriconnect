@@ -23,15 +23,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $farm_name = trim($_POST["farm_name"] ?? "");
     $county = trim($_POST["county"] ?? "");
-    $sub_county = trim($_POST["sub_county"] ?? "");
-    $farm_location = trim($_POST["farm_location"] ?? "");
-    $bio = trim($_POST["bio"] ?? "");
-
+    
     if (
         $full_name === "" || $email === "" || $phone === "" ||
         $password === "" || $confirm_password === "" ||
-        $farm_name === "" || $county === "" ||
-        $sub_county === "" || $farm_location === ""
+        $farm_name === "" || $county === ""
     ) {
         $message = "Please fill in all required fields.";
         $message_type = "danger";
@@ -398,25 +394,6 @@ function escape($value) {
     <input type="text" class="form-control" id="county"
            name="county" placeholder="Enter your county" required>
 </div>
-
-<div class="mb-3">
-    <label for="sub_county" class="form-label">Sub-county</label>
-    <input type="text" class="form-control" id="sub_county"
-           name="sub_county" placeholder="Enter your sub-county" required>
-</div>
-
-<div class="mb-3">
-    <label for="farm_location" class="form-label">Farm Location</label>
-    <input type="text" class="form-control" id="farm_location"
-           name="farm_location" placeholder="Enter farm location" required>
-</div>
-
-<div class="mb-3">
-    <label for="bio" class="form-label">About Your Farm (Optional)</label>
-    <textarea class="form-control" id="bio" name="bio" rows="3"
-              placeholder="Describe your farm produce"></textarea>
-</div>
-
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>

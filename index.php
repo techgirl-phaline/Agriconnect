@@ -1,11 +1,10 @@
-
 <?php
 require_once "db.php";
+
 $site_name = "AgriConnect";
 
 /*
- * Load featured products from MySQL.
- * If the products table is empty, sample products are displayed.
+ * Load featured products directly from MySQL.
  */
 $products = [];
 $database_error = false;
@@ -13,7 +12,6 @@ $database_error = false;
 $sql = "SELECT
             p.product_id,
             p.product_name,
-            p.description,
             p.price,
             p.unit,
             p.quantity_available,
@@ -34,73 +32,19 @@ $sql = "SELECT
 $result = $conn->query($sql);
 
 if ($result) {
+
     while ($row = $result->fetch_assoc()) {
         $products[] = $row;
     }
+
 } else {
+
     $database_error = true;
+
 }
 
 /*
- * Temporary sample products for the initial homepage.
- * These are only displayed when no real products are available.
- * They are NOT inserted into the database.
- */
-if (empty($products)) {
-    $products = [
-        [
-            "product_id" => 0,
-            "product_name" => "Fresh Maize",
-            "description" => "Quality maize directly from the farm.",
-            "price" => "65.00",
-            "unit" => "kg",
-            "quantity_available" => "100",
-            "image" => "images/maize.jpeg",
-            "category_name" => "Cereals",
-            "farm_name" => "Sample Farm",
-            "county" => "Trans Nzoia"
-        ],
-        [
-            "product_id" => 0,
-            "product_name" => "Fresh Tomatoes",
-            "description" => "Fresh, ripe tomatoes for your kitchen.",
-            "price" => "80.00",
-            "unit" => "kg",
-            "quantity_available" => "50",
-            "image" => "images/tomatoes .jpeg",
-            "category_name" => "Vegetables",
-            "farm_name" => "Sample Farm",
-            "county" => "Nakuru"
-        ],
-        [
-            "product_id" => 0,
-            "product_name" => "Irish Potatoes",
-            "description" => "Freshly harvested quality potatoes.",
-            "price" => "55.00",
-            "unit" => "kg",
-            "quantity_available" => "80",
-            "image" => "images/irish.jpeg",
-            "category_name" => "Tubers",
-            "farm_name" => "Sample Farm",
-            "county" => "Nyandarua"
-        ],
-        [
-            "product_id" => 0,
-            "product_name" => "Sukuma Wiki",
-            "description" => "Fresh green leafy vegetables.",
-            "price" => "30.00",
-            "unit" => "bunch",
-            "quantity_available" => "40",
-            "image" => "images/sukuma wiki.jpeg",
-            "category_name" => "Vegetables",
-            "farm_name" => "Sample Farm",
-            "county" => "Kiambu"
-        ]
-    ];
-}
-
-/*
- * Escape text before displaying database values in HTML.
+ * Escape text before displaying database values.
  */
 function e($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
@@ -720,38 +664,61 @@ function e($value) {
             background: var(--pale-green);
         }
 
-        .product-card {
-            height: 100%;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            overflow: hidden;
-            transition: transform 0.25s, box-shadow 0.25s;
-        }
+       .product-card {
+    height: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E5EBE3;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 14px rgba(7, 91, 61, 0.04);
+}
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-        }
+.product-card:hover {
+    transform: translateY(-7px);
+    border-color: #C9DCCB;
+    box-shadow: 0 12px 28px rgba(7, 91, 61, 0.12);
+}
+        /* FEATURED PRODUCT IMAGE DESIGN */
 
-        .product-image {
-            position: relative;
-            height: 205px;
-            overflow: hidden;
-            background: var(--soft-green);
-        }
+.product-image {
+    position: relative;
+    height: 225px;
+    overflow: hidden;
+    background: #F4F8F1;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #E5EBE3;
+}
 
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.35s;
-        }
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 9px;
+    transition: transform 0.4s ease;
+}
 
-        .product-card:hover .product-image img {
-            transform: scale(1.04);
-        }
+.product-card:hover .product-image img {
+    transform: scale(1.06);
+}
 
+.product-category {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: #F5CF32;
+    color: #06452F;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
         .product-category {
             position: absolute;
             top: 12px;
@@ -765,7 +732,7 @@ function e($value) {
         }
 
         .product-content {
-            padding: 17px;
+            padding: 14px;
         }
 
         .product-name {
@@ -783,14 +750,6 @@ function e($value) {
             font-size: 11px;
             margin-bottom: 12px;
         }
-
-        .product-description {
-            color: var(--text-muted);
-            font-size: 12px;
-            min-height: 39px;
-            margin-bottom: 14px;
-        }
-
         .product-price {
             color: var(--dark-green);
             font-size: 21px;
@@ -1471,7 +1430,7 @@ function e($value) {
             }
 
             .product-image {
-                height: 190px;
+                height: 180px;
             }
 
             .cta-box {
@@ -1942,13 +1901,13 @@ function e($value) {
 
     </div>
 </section>
-
-
 <!-- FEATURED PRODUCTS -->
 <section class="section-padding products-section" id="products">
+
     <div class="container">
 
         <div class="text-center mb-5">
+
             <span class="section-label">Our Marketplace</span>
 
             <h2 class="section-heading">Featured Farm Produce</h2>
@@ -1957,135 +1916,198 @@ function e($value) {
                 Discover quality agricultural produce from local farms.
                 Browse the products and find what you need.
             </p>
+
         </div>
 
         <div class="row g-4" id="productGrid">
 
-            <?php foreach ($products as $product): ?>
+            <?php if (!empty($products)): ?>
 
-                
-<?php
-    $image_path = trim((string)($product['image'] ?? ''));
+                <?php foreach ($products as $product): ?>
 
-    // Get only the image filename, whether stored with slashes or backslashes.
-    $image_filename = basename(str_replace('\\', '/', $image_path));
+                    <?php
 
-    // Use the correct folder based on the image path.
-    if (strpos($image_path, 'uploads/products/') === 0) {
-        $image_url = 'uploads/products/' . rawurlencode($image_filename);
-    } elseif (strpos($image_path, 'images/') === 0) {
-        $image_url = 'images/' . rawurlencode($image_filename);
-    } elseif ($image_path !== '' && strpos($image_path, '/') === false
-              && strpos($image_path, '\\') === false) {
-        // Database stores only the filename.
-        $image_url = 'uploads/products/' . rawurlencode($image_filename);
-    } else {
-        $image_url = '';
-    }
-?>
+                    $image_path = trim((string)($product['image'] ?? ''));
 
+                    // Get the image filename.
+                    $image_filename = basename(
+                        str_replace('\\', '/', $image_path)
+                    );
 
-                <div class="col-6 col-md-6 col-lg-3 product-item"
-                     data-name="<?= e(strtolower($product['product_name'])) ?>"
-                     data-category="<?= e(strtolower($product['category_name'])) ?>"
-                     data-county="<?= e(strtolower($product['county'])) ?>">
+                    // Determine the image folder.
+                    if (strpos($image_path, 'uploads/products/') === 0) {
 
-                    <article class="product-card">
+                        $image_url = 'uploads/products/' .
+                                     rawurlencode($image_filename);
 
-                        <div class="product-image">
+                    } elseif (strpos($image_path, 'images/') === 0) {
 
-                            <?php if ($image_url !== ''): ?>
+                        $image_url = 'images/' .
+                                     rawurlencode($image_filename);
 
-                                <img src="<?= e($image_url) ?>"
-                                     alt="<?= e($product['product_name']) ?>"
-                                     loading="lazy"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    } elseif (
+                        $image_path !== '' &&
+                        strpos($image_path, '/') === false &&
+                        strpos($image_path, '\\') === false
+                    ) {
 
-                                <div class="product-placeholder" style="display:none;">
-                                    <i class="bi bi-image"></i>
-                                    <span>Product image unavailable</span>
-                                </div>
+                        $image_url = 'uploads/products/' .
+                                     rawurlencode($image_filename);
 
-                            <?php else: ?>
+                    } else {
 
-                                <div class="product-placeholder">
-                                    <i class="bi bi-basket2"></i>
-                                    <span>Product image coming soon</span>
-                                </div>
+                        $image_url = '';
 
-                            <?php endif; ?>
+                    }
 
-                            <span class="product-category">
-                                <?= e($product['category_name']) ?>
-                            </span>
+                    ?>
 
-                        </div>
+                    <div class="col-6 col-md-6 col-lg-3 product-item"
+                         data-name="<?= e(strtolower($product['product_name'])) ?>"
+                         data-category="<?= e(strtolower($product['category_name'])) ?>"
+                         data-county="<?= e(strtolower($product['county'])) ?>">
 
-                        <div class="product-content">
+                        <article class="product-card">
 
-                            <h3 class="product-name">
-                                <?= e($product['product_name']) ?>
-                            </h3>
+                            <!-- PRODUCT IMAGE -->
 
-                            <div class="product-location">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <?= e($product['county']) ?> County
-                            </div>
+                            <div class="product-image">
 
-                            <p class="product-description">
-                                <?= e($product['description'] ?: 'Quality agricultural produce from a local farm.') ?>
-                            </p>
+                                <?php if ($image_url !== ''): ?>
 
-                            <div class="product-price">
-                                KSh <?= number_format((float)$product['price'], 2) ?>
-                                <span class="product-unit">
-                                    / <?= e($product['unit']) ?>
+                                    <img src="<?= e($image_url) ?>"
+                                         alt="<?= e($product['product_name']) ?>"
+                                         loading="lazy"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+                                    <div class="product-placeholder"
+                                         style="display:none;">
+
+                                        <i class="bi bi-image"></i>
+
+                                        <span>
+                                            Product image unavailable
+                                        </span>
+
+                                    </div>
+
+                                <?php else: ?>
+
+                                    <div class="product-placeholder">
+
+                                        <i class="bi bi-basket2"></i>
+
+                                        <span>
+                                            Product image coming soon
+                                        </span>
+
+                                    </div>
+
+                                <?php endif; ?>
+
+                                <span class="product-category">
+                                    <?= e($product['category_name']) ?>
                                 </span>
+
                             </div>
 
-                            <div class="product-stock mt-2">
-                                <i class="bi bi-check-circle-fill me-1"></i>
-                                Available: <?= e($product['quantity_available']) ?>
-                                <?= e($product['unit']) ?>
-                            </div>
+                            <!-- PRODUCT DETAILS -->
 
-                            <div class="product-divider"></div>
+                            <div class="product-content">
 
-                            <?php if ((int)$product['product_id'] > 0): ?>
+                                <h3 class="product-name">
+                                    <?= e($product['product_name']) ?>
+                                </h3>
+
+                                <div class="product-location">
+
+                                    <i class="bi bi-geo-alt-fill"></i>
+
+                                    <?= e($product['county']) ?> County
+
+                                </div>
+
+                                <div class="product-price">
+
+                                    KSh <?= number_format(
+                                        (float)$product['price'], 2
+                                    ) ?>
+
+                                    <span class="product-unit">
+                                        / <?= e($product['unit']) ?>
+                                    </span>
+
+                                </div>
+
+                                <div class="product-stock mt-2">
+
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+
+                                    Available:
+                                    <?= e($product['quantity_available']) ?>
+
+                                    <?= e($product['unit']) ?>
+
+                                </div>
+
+                                <div class="product-divider"></div>
 
                                 <a class="product-button"
                                    href="product-details.php?id=<?= (int)$product['product_id'] ?>">
+
                                     View Details
+
                                     <i class="bi bi-arrow-right ms-1"></i>
+
                                 </a>
 
-                            <?php else: ?>
+                            </div>
 
-                                <a class="product-button" href="products.php">
-                                    Browse Products
-                                    <i class="bi bi-arrow-right ms-1"></i>
-                                </a>
+                        </article>
 
-                            <?php endif; ?>
+                    </div>
 
-                        </div>
+                <?php endforeach; ?>
 
-                    </article>
+            <?php else: ?>
+
+                <!-- DISPLAY WHEN THERE ARE NO PRODUCTS -->
+
+                <div class="col-12 text-center py-4">
+
+                    <i class="bi bi-basket3"
+                       style="font-size: 40px; color: #13804F;">
+                    </i>
+
+                    <h5 class="mt-3" style="color: #075B3D;">
+                        No Produce Available
+                    </h5>
+
+                    <p class="text-muted">
+                        No produce available at the moment.
+                        Please check back later.
+                    </p>
 
                 </div>
 
-            <?php endforeach; ?>
+            <?php endif; ?>
 
         </div>
 
         <div class="text-center mt-5">
+
             <a href="products.php" class="view-all-button">
+
                 View All Products
+
                 <i class="bi bi-arrow-right ms-2"></i>
+
             </a>
+
         </div>
 
     </div>
+
 </section>
 <!-- AGRICONNECT PRESENTATION -->
 <div class="steps-presentation" id="agriPresentation">

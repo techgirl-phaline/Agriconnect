@@ -150,7 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['category_id'] ?? '',
                     FILTER_VALIDATE_INT
                 );
-                $description = trim($_POST['description'] ?? '');
                 $price_input = trim($_POST['price'] ?? '');
                 $unit = trim($_POST['unit'] ?? '');
                 $quantity_input = trim($_POST['quantity_available'] ?? '');
@@ -280,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($product_id > 0) {
                     $stmt = $conn->prepare(
                         "UPDATE products
-                         SET category_id = ?, product_name = ?, description = ?,
+                         SET category_id = ?, product_name = ?,
                              price = ?, unit = ?, quantity_available = ?,
                              image = ?, location = ?, status = ?,
                              updated_at = NOW()
@@ -288,10 +287,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
 
                     $stmt->bind_param(
-                        "issdsdsssii",
+                        "isdsdsssii",
                         $category_id,
                         $product_name,
-                        $description,
                         $price,
                         $unit,
                         $quantity,
@@ -311,33 +309,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $message = 'Your produce listing has been updated.';
                 } else {
-                    $stmt = $conn->prepare(
-                        "INSERT INTO products
-                         (farmer_id, category_id, product_name, description,
-                          price, unit, quantity_available, image, location, status,
-                          created_at, updated_at)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
-                    );
+                   
+                       $stmt = $conn->prepare(
+    "INSERT INTO products
+     (farmer_id, category_id, product_name, price,
+      unit, quantity_available, image, location, status,
+      created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
+);
 
-                    $stmt->bind_param(
-                        "iissdsdsss",
-                        $farmer_id,
-                        $category_id,
-                        $product_name,
-                        $description,
-                        $price,
-                        $unit,
-                        $quantity,
-                        $image,
-                        $location,
-                        $status
-                    );
+$stmt->bind_param(
+    "iidsdssss",
+    $farmer_id,
+    $category_id,
+    $product_name,
+    $price,
+    $unit,
+    $quantity,
+    $image,
+    $location,
+    $status
+);
 
-                    $stmt->execute();
-                    $stmt->close();
+$stmt->execute();
+$stmt->close();
 
-                    $message = 'Your produce has been added successfully.';
+$message = 'Your produce has been added successfully.';
                 }
+
             } else {
                 throw new Exception('Unknown action.');
             }
@@ -371,7 +370,7 @@ $products = [];
 
 try {
     $stmt = $conn->prepare(
-        "SELECT p.product_id, p.product_name, p.description, p.price,
+        "SELECT p.product_id, p.product_name,  p.price,
                 p.unit, p.quantity_available, p.image, p.location, p.status,
                 p.created_at, p.category_id, c.category_name
          FROM products p
@@ -732,16 +731,6 @@ foreach ($products as $product) {
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <div class="col-12">
-                    <label for="description" class="form-label fw-semibold">
-                        Description
-                    </label>
-                    <textarea class="form-control" id="description"
-                              name="description" rows="3"
-                              placeholder="Describe the quality, freshness or harvest details..."><?= e($edit_product['description'] ?? '') ?></textarea>
-                </div>
-
                 <div class="col-md-6">
                     <label for="status" class="form-label fw-semibold">
                         Availability *
