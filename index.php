@@ -1232,6 +1232,73 @@ function e($value) {
     font-size: 11px;
     margin-top: 3px;
 }
+/* OUR REACH - FARMING REGIONS */
+
+.branches-section {
+    background: #F7FAF4;
+}
+
+.branch-card {
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 17px;
+    padding: 25px 22px;
+    background: #FFFFFF;
+    border: 1px solid #E2E9E1;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.branch-card:hover {
+    transform: translateY(-5px);
+    border-color: #13804F;
+    box-shadow: 0 10px 25px rgba(7, 91, 61, 0.09);
+}
+
+.branch-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EFF6E9;
+    color: #075B3D;
+    border-radius: 10px;
+    font-size: 22px;
+}
+
+.branch-card h3 {
+    color: #075B3D;
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.branch-card p {
+    color: #6B786F;
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+.branch-region-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 5px 10px;
+    background: #FFF9D9;
+    color: #075B3D;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+@media (max-width: 576px) {
+    .branch-card {
+        padding: 20px 16px;
+    }
+}
 
         /* FOOTER */
 
@@ -2406,59 +2473,141 @@ function e($value) {
     </div>
 
 </section>
-
-
-<!-- BRANCH LOCATIONS -->
+<!-- OUR REACH / FARMING REGIONS -->
 <section class="section-padding branches-section" id="branches">
 
     <div class="container">
 
         <div class="text-center mb-5">
+
             <span class="section-label">Our Reach</span>
 
-            <h2 class="section-heading">Explore Farming Regions</h2>
+            <h2 class="section-heading">
+                Explore Farming Regions
+            </h2>
 
             <p class="section-description">
-                Discover agricultural produce from different farming
-                regions across Kenya.
+                Discover agricultural produce from different
+                farming regions across Kenya.
             </p>
+
         </div>
 
         <div class="row g-4">
 
+            <!-- RIFT VALLEY -->
             <div class="col-md-6 col-lg-4">
                 <div class="branch-card">
-                    <div class="branch-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
+
                     <div>
                         <h3>Rift Valley</h3>
-                        <p>Known for cereals, potatoes and many other crops.</p>
+
+                        <p>
+                            Known for maize, wheat, potatoes
+                            and other cereal crops.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            CEREALS & TUBERS
+                        </span>
                     </div>
+
                 </div>
             </div>
 
+            <!-- CENTRAL -->
             <div class="col-md-6 col-lg-4">
                 <div class="branch-card">
-                    <div class="branch-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
                     <div>
                         <h3>Central Kenya</h3>
-                        <p>A region with vegetables, fruits and dairy farming.</p>
+
+                        <p>
+                            Popular for vegetables, fruits,
+                            coffee and dairy farming.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            FRUITS & VEGETABLES
+                        </span>
                     </div>
+
                 </div>
             </div>
 
+            <!-- WESTERN -->
             <div class="col-md-6 col-lg-4">
                 <div class="branch-card">
-                    <div class="branch-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
+
                     <div>
                         <h3>Western Kenya</h3>
-                        <p>Agricultural produce including maize, beans and vegetables.</p>
+
+                        <p>
+                            Produces maize, beans, sugarcane
+                            and a variety of vegetables.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            MAIZE & LEGUMES
+                        </span>
                     </div>
+
+                </div>
+            </div>
+
+            <!-- EASTERN -->
+            <div class="col-md-6 col-lg-4">
+                <div class="branch-card">
+                    <div>
+                        <h3>Eastern Kenya</h3>
+
+                        <p>
+                            Known for fruits, green grams,
+                            beans and drought-resistant crops.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            FRUITS & LEGUMES
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- NYANZA -->
+            <div class="col-md-6 col-lg-4">
+                <div class="branch-card">
+                    <div>
+                        <h3>Nyanza</h3>
+
+                        <p>
+                            Supports maize, cassava, rice
+                            and various food crops.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            FOOD CROPS
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- COAST -->
+            <div class="col-md-6 col-lg-4">
+                <div class="branch-card">
+                    <div>
+                        <h3>Coast Region</h3>
+
+                        <p>
+                            Known for coconuts, cashew nuts,
+                            cassava and tropical fruits.
+                        </p>
+
+                        <span class="branch-region-tag">
+                            TROPICAL PRODUCE
+                        </span>
+                    </div>
+
                 </div>
             </div>
 
