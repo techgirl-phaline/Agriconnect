@@ -54,10 +54,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $conn->begin_transaction();
 
             $stmt = $conn->prepare(
-                "SELECT status, payment_status
-                 FROM orders
-                 WHERE order_id = ?
-                 FOR UPDATE"
+                "SELECT buyer_id, status, payment_status
+ FROM orders
+ WHERE order_id = ?
+ FOR UPDATE"
             );
             $stmt->bind_param("i", $order_id);
             $stmt->execute();
@@ -67,10 +67,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (!$current_order) {
                 throw new RuntimeException("Order not found.");
             }
+            $buyer_id = (int) $current_order["buyer_id"];
+$current_status = $current_order["status"];
+$payment_status = $current_order["payment_status"];
 
-            $current_status = $current_order["status"];
-            $payment_status = $current_order["payment_status"];
-
+            
             $current_index = array_search(
                 $current_status,
                 $allowed_statuses,
@@ -122,11 +123,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 );
             }
 
-            $conn->commit();
+           // Notify buyer when the order reaches the pickup office.
+if ($new_status === "delivered") {
 
-            $message = "Order #" . $order_id .
-                " updated to " . $status_labels[$new_status] . ".";
-            $message_type = "success";
+    $notification_title = "Your Order Is Ready for Collection!";
+
+    $notification_message =
+        "Good news! Your AgriConnect Order #" . $order_id .
+        " has arrived at your selected pickup office. " .
+        "You can now collect your produce.";
+
+    $notification_stmt = $conn->prepare(
+        "INSERT IGNORE INTO buyer_notifications
+            (buyer_id, order_id, title, message)
+         VALUES (?, ?, ?, ?)"
+    );
+
+    $notification_stmt->bind_param(
+        "iiss",
+        $buyer_id,
+        $order_id,
+        $notification_title,
+        $notification_message
+    );
+
+    $notification_stmt->execute();
+    $notification_stmt->close();
+}
+
+$conn->commit();
+
+$message = "Order #" . $order_id .
+    " updated to " . $status_labels[$new_status] . ".";
+$message_type = "success";
 
         } catch (Throwable $ex) {
             try {

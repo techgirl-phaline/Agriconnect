@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once "db.php";
 
@@ -73,8 +73,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $errors[] = "Incorrect email or password.";
             }
 
-            if ($stmt) {
-                $stmt->close();
+            if (isset($stmt) && $stmt instanceof mysqli_stmt) {
+                try {
+                    $stmt->close();
+                } catch (mysqli_sql_exception $e) {
+                    // Statement was already closed.
+                }
             }
         }
     }
@@ -252,7 +256,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="login-card">
 
         <div class="text-center mb-4">
-            <div class="icon-circle">🌱</div>
+            <div class="icon-circle">ðŸŒ±</div>
             <h1 class="page-title h2">Welcome Back</h1>
             <p class="text-secondary">
                 Log in to your AgriConnect account.
@@ -316,3 +320,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 </body>
 </html>
+

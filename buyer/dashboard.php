@@ -13,6 +13,77 @@ if (
 }
 
 $buyer_id = (int) $_SESSION['user_id'];
+// Notification CSRF token
+if (empty($_SESSION['buyer_notifications_csrf'])) {
+    $_SESSION['buyer_notifications_csrf'] = bin2hex(random_bytes(32));
+}
+
+// Mark a notification as read
+if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['mark_notification_read'])) {
+
+    $token = $_POST['csrf_token'] ?? '';
+    $notification_id = filter_input(
+        INPUT_POST,
+        'notification_id',
+        FILTER_VALIDATE_INT
+    );
+
+    if (
+        is_string($token) &&
+        hash_equals($_SESSION['buyer_notifications_csrf'], $token) &&
+        $notification_id
+    ) {
+        $read_stmt = $conn->prepare(
+            "UPDATE buyer_notifications
+             SET is_read = 1
+             WHERE notification_id = ? AND buyer_id = ?"
+        );
+
+        $read_stmt->bind_param(
+            "ii",
+            $notification_id,
+            $buyer_id
+        );
+
+        $read_stmt->execute();
+        $read_stmt->close();
+    }
+
+    header("Location: dashboard.php#notifications");
+    exit;
+}
+
+// Count unread notifications
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total
+     FROM buyer_notifications
+     WHERE buyer_id = ? AND is_read = 0"
+);
+
+$stmt->bind_param("i", $buyer_id);
+$stmt->execute();
+
+$unread_notifications = (int) $stmt->get_result()
+    ->fetch_assoc()['total'];
+
+$stmt->close();
+
+// Retrieve this buyer's notifications
+$stmt = $conn->prepare(
+    "SELECT notification_id, order_id, title, message,
+            is_read, created_at
+     FROM buyer_notifications
+     WHERE buyer_id = ?
+     ORDER BY created_at DESC
+     LIMIT 10"
+);
+
+$stmt->bind_param("i", $buyer_id);
+$stmt->execute();
+
+$notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
 
 // Verify the buyer account.
 $stmt = $conn->prepare(
@@ -222,30 +293,47 @@ function e($value) {
             font-size: .85rem;
             font-weight: 700;
         }
-
-        footer {
-            border-top: 1px solid var(--border);
-            color: var(--muted);
-        }
-
         @media (max-width: 576px) {
             .welcome {
                 padding: 24px;
             }
+            /* AgriConnect Buyer Footer */
+.agr-footer {
+    background-color: #123b2a !important;
+    color: #ffffff !important;
+    border-top: 4px solid #facc15;
+    padding: 25px 15px;
+    width: 100%;
+    margin-top: 40px;
+    text-align: center;
+}
 
-            .welcome h1 {
-                font-size: 1.7rem;
-            }
+.agr-footer span {
+    color: #ffffff !important;
+    font-size: 14px;
+}
 
-            .dashboard-card {
-                padding: 20px;
-            }
+.agr-footer a {
+    color: #facc15 !important;
+    text-decoration: none;
+}
 
-            .nav-link-custom {
-                margin-left: 10px;
-                font-size: .9rem;
-            }
-        }
+.agr-footer a:hover {
+    color: #ffffff !important;
+}
+
+@media (max-width: 576px) {
+    .agr-footer {
+        padding: 20px 15px;
+    }
+
+    .agr-footer .container {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+           
+        
     </style>
 </head>
 
@@ -256,15 +344,29 @@ function e($value) {
         <a href="../index.php" class="brand">
             🌱 Agri<span>Connect</span>
         </a>
-
         <div class="ms-auto d-flex align-items-center">
-            <a href="cart.php" class="nav-link-custom">
-                🛒 Cart (<?= $cart_count ?>)
-            </a>
 
-            <a href="logout.php" class="nav-link-custom">
-                Log Out
-            </a>
+    <a href="#notifications" class="nav-link-custom position-relative">
+        🔔 Notifications
+
+        <?php if ($unread_notifications > 0): ?>
+            <span class="badge bg-danger">
+                <?= $unread_notifications ?>
+            </span>
+        <?php endif; ?>
+    </a>
+
+    <a href="cart.php" class="nav-link-custom">
+        🛒 Cart (<?= $cart_count ?>)
+    </a>
+
+    <a href="logout.php" class="nav-link-custom">
+        Log Out
+    </a>
+
+</div>
+
+        
         </div>
     </div>
 </nav>
@@ -305,6 +407,82 @@ function e($value) {
         </div>
 
     <?php endif; ?>
+    <!-- Notifications Section -->
+<section id="notifications" class="mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="section-title mb-0">🔔 Notifications</h4>
+
+        <?php if ($unread_notifications > 0): ?>
+            <span class="badge bg-danger">
+                <?= $unread_notifications ?> Unread
+            </span>
+        <?php endif; ?>
+    </div>
+
+    <?php if (empty($notifications)): ?>
+
+        <div class="alert alert-light border">
+            <h5>No notifications yet</h5>
+            <p class="mb-0">
+                Your order updates and collection notifications will appear here.
+            </p>
+        </div>
+
+    <?php else: ?>
+
+        <?php foreach ($notifications as $notification): ?>
+
+            <div class="dashboard-card mb-3">
+
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5>
+                        <?= e($notification['title']) ?>
+                    </h5>
+
+                    <?php if (!$notification['is_read']): ?>
+                        <span class="badge bg-warning text-dark">New</span>
+                    <?php else: ?>
+                        <span class="badge bg-secondary">Read</span>
+                    <?php endif; ?>
+                </div>
+
+                <p><?= e($notification['message']) ?></p>
+
+                <small class="text-muted">
+                    Order #<?= (int) $notification['order_id'] ?>
+                    |
+                    <?= e($notification['created_at']) ?>
+                </small>
+
+                <?php if (!$notification['is_read']): ?>
+                    <form method="POST" class="mt-3">
+
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="<?= e($_SESSION['buyer_notifications_csrf']) ?>">
+
+                        <input type="hidden"
+                               name="notification_id"
+                               value="<?= (int) $notification['notification_id'] ?>">
+
+                        <button type="submit"
+                                name="mark_notification_read"
+                                class="btn-green">
+                            Mark as Read
+                        </button>
+
+                    </form>
+                <?php endif; ?>
+
+            </div>
+
+        <?php endforeach; ?>
+
+    <?php endif; ?>
+
+</section>
+    
 
     <!-- Dashboard cards -->
     <h4 class="section-title mb-3">Your Shopping Dashboard</h4>
@@ -409,12 +587,17 @@ function e($value) {
         </div>
     </section>
 
-    <footer class="mt-5 pt-3 pb-2">
-        <div class="d-flex flex-wrap justify-content-between gap-2">
-            <span>AgriConnect &copy; <?= date('Y') ?></span>
-            <span>Connecting Farmers to Buyers 🌱</span>
-        </div>
-    </footer>
+<footer class="agr-footer">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>
+            &copy; <?= date('Y') ?> AgriConnect
+        </span>
+
+        <span>
+            Connecting Farmers to Buyers 🌱
+        </span>
+    </div>
+</footer>
 
 </main>
 
