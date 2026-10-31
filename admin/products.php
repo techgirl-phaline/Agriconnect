@@ -33,6 +33,17 @@ AND approval_status = 'pending'"
         $stmt->bind_param("si", $approval_status, $product_id);
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
+            // Mark the corresponding product notification as read
+$notification_stmt = $conn->prepare(
+    "UPDATE admin_notifications
+     SET is_read = 1
+     WHERE notification_type = 'product'
+     AND reference_id = ?"
+);
+
+$notification_stmt->bind_param("i", $product_id);
+$notification_stmt->execute();
+$notification_stmt->close();
             $message = ($action === "approve")
                 ? "Produce listing approved successfully."
                 : "Produce listing rejected.";

@@ -24,8 +24,8 @@ $sql = "SELECT
             ON p.category_id = c.category_id
         INNER JOIN farmer_profiles fp
             ON p.farmer_id = fp.farmer_id
-        WHERE p.status = 'available'
-          AND p.quantity_available > 0
+       WHERE p.approval_status = 'approved'
+  AND p.status = 'available'
         ORDER BY p.created_at DESC
         LIMIT 8";
 

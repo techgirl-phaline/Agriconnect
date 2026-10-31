@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -22,9 +23,7 @@ $errors = [];
 
 $full_name = "";
 $phone = "";
-$delivery_location = "";
 $notes = "";
-$fulfillment_method = "delivery";
 $pickup_point_id = 0;
 $selected_point = null;
 
@@ -61,7 +60,7 @@ if (!$buyer || $buyer["account_status"] !== "approved") {
 $full_name = $buyer["full_name"] ?? "";
 $phone = $buyer["phone"] ?? "";
 
-/* Load active pickup offices. */
+/* Load active AgriConnect pickup offices. */
 $pickup_points = [];
 
 $stmt = $conn->prepare(
@@ -98,6 +97,7 @@ try {
                AND approval_status = 'approved'
              LIMIT 1"
         );
+
         $stmt->bind_param("i", $product_id);
         $stmt->execute();
         $product = $stmt->get_result()->fetch_assoc();
@@ -105,7 +105,7 @@ try {
 
         if (!$product) {
             throw new Exception(
-                "A product in your cart is no longer available. Please return to your cart."
+                "A product in your cart is no longer available. Please review your cart."
             );
         }
 
@@ -144,12 +144,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
         $errors[] = "Your session token is invalid. Please refresh the page and try again.";
     }
 
-    $posted_name = trim($_POST["full_name"] ?? "");
-    $posted_phone = trim($_POST["phone"] ?? "");
-    $delivery_location = trim($_POST["delivery_location"] ?? "");
-    $notes = trim($_POST["notes"] ?? "");
-
-    $fulfillment_method = $_POST["fulfillment_method"] ?? "delivery";
+    $notes = trim(
+        is_string($_POST["notes"] ?? "")
+            ? $_POST["notes"]
+            : ""
+    );
 
     $pickup_point_id = filter_var(
         $_POST["pickup_point_id"] ?? "",
@@ -160,60 +159,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
         $pickup_point_id = 0;
     }
 
-    /* Validate buyer details. */
-    if ($posted_name === "" || strlen($posted_name) > 100) {
-        $errors[] = "Please enter your full name (maximum 100 characters).";
-    }
-
-    if (!preg_match('/^[0-9+\s()-]{9,16}$/', $posted_phone)) {
-        $errors[] = "Please enter a valid phone number.";
-    }
-
-    /* Validate delivery or pickup. */
-    if (!in_array($fulfillment_method, ["delivery", "pickup"], true)) {
-        $errors[] = "Please select a valid fulfilment method.";
-    }
-
-    if ($fulfillment_method === "delivery") {
-
-        $pickup_point_id = 0;
-
-        if ($delivery_location === "") {
-            $errors[] = "Please enter your delivery location.";
-        }
-
-        if (strlen($delivery_location) > 255) {
-            $errors[] = "Delivery location must not exceed 255 characters.";
-        }
-
-    } elseif ($fulfillment_method === "pickup") {
-
-        if ($pickup_point_id < 1) {
-            $errors[] = "Please select a pickup booking office.";
-        } else {
-            $stmt = $conn->prepare(
-                "SELECT pickup_point_id, point_name, address, phone, description
-                 FROM pickup_points
-                 WHERE pickup_point_id = ?
-                   AND status = 'active'
-                 LIMIT 1"
-            );
-
-            $stmt->bind_param("i", $pickup_point_id);
-            $stmt->execute();
-            $selected_point = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-
-            if (!$selected_point) {
-                $errors[] = "The selected pickup office is unavailable. Please choose another.";
-            } else {
-                $delivery_location = $selected_point["address"];
-            }
-        }
-    }
-
+    /* Validate optional notes. */
     if (strlen($notes) > 1000) {
         $errors[] = "Additional notes must not exceed 1000 characters.";
+    }
+
+    /* Validate pickup office selection. */
+    if ($pickup_point_id < 1) {
+        $errors[] = "Please select an AgriConnect pickup booking office.";
+    } else {
+        $stmt = $conn->prepare(
+            "SELECT pickup_point_id, point_name, address, phone, description
+             FROM pickup_points
+             WHERE pickup_point_id = ?
+               AND status = 'active'
+             LIMIT 1"
+        );
+
+        $stmt->bind_param("i", $pickup_point_id);
+        $stmt->execute();
+        $selected_point = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$selected_point) {
+            $errors[] = "The selected pickup office is unavailable. Please choose another.";
+        }
     }
 
     /* Place order if validation passes. */
@@ -279,22 +249,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
                 throw new Exception("Your cart is empty or its total is invalid.");
             }
 
+            /* Recheck that the selected pickup office is still active. */
+            $stmt = $conn->prepare(
+                "SELECT pickup_point_id, address
+                 FROM pickup_points
+                 WHERE pickup_point_id = ?
+                   AND status = 'active'
+                 LIMIT 1"
+            );
+
+            $stmt->bind_param("i", $pickup_point_id);
+            $stmt->execute();
+            $current_point = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            if (!$current_point) {
+                throw new Exception(
+                    "The selected pickup office is no longer available. Please choose another."
+                );
+            }
+
+            $delivery_location = $current_point["address"];
+            $fulfillment_method = "pickup";
+            $selected_pickup_id = (int) $current_point["pickup_point_id"];
+
             /* Set order and payment details. */
             $status = "placed";
             $payment_method = "mpesa_manual";
             $payment_status = "unpaid";
 
-            /*
-             * Store the selected pickup office ID for pickup orders.
-             * Delivery orders use NULL for pickup_point_id.
-             */
-            $selected_pickup_id = null;
+            /* Store blank notes as NULL. */
+            $buyer_notes = ($notes === "") ? null : $notes;
 
-            if ($fulfillment_method === "pickup") {
-                $selected_pickup_id = (int) $pickup_point_id;
-            }
-
-            /* Insert the order for BOTH delivery and pickup. */
+            /* Insert pickup-only order and optional notes. */
             $stmt = $conn->prepare(
                 "INSERT INTO orders
                     (
@@ -306,13 +293,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
                         fulfillment_method,
                         pickup_point_id,
                         payment_method,
-                        payment_status
+                        payment_status,
+                        buyer_notes
                     )
-                 VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?)"
+                 VALUES (?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)"
             );
 
             $stmt->bind_param(
-                "idsssiss",
+                "idsssisss",
                 $buyer_id,
                 $locked_total,
                 $delivery_location,
@@ -320,7 +308,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
                 $fulfillment_method,
                 $selected_pickup_id,
                 $payment_method,
-                $payment_status
+                $payment_status,
+                $buyer_notes
             );
 
             $stmt->execute();
@@ -379,34 +368,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
             $stock_stmt->close();
 
             /* Create admin notification for the new order. */
-$notification_type = "order";
-$title = "New Order Received";
+            $notification_type = "order";
+            $title = "New Order Received";
 
-$message = "A buyer has placed Order #" . $order_id .
-           " worth KSh " . number_format($locked_total, 2) . ".";
+            $message = "A buyer has placed Order #" . $order_id .
+                       " worth KSh " . number_format($locked_total, 2) . ".";
 
-$action_url = "orders.php";
+            $action_url = "orders.php";
 
-$notification_stmt = $conn->prepare(
-    "INSERT IGNORE INTO admin_notifications
-        (notification_type, reference_id, title, message, action_url)
-     VALUES (?, ?, ?, ?, ?)"
-);
+            $notification_stmt = $conn->prepare(
+                "INSERT IGNORE INTO admin_notifications
+                    (notification_type, reference_id, title, message, action_url)
+                 VALUES (?, ?, ?, ?, ?)"
+            );
 
-$notification_stmt->bind_param(
-    "sisss",
-    $notification_type,
-    $order_id,
-    $title,
-    $message,
-    $action_url
-);
+            $notification_stmt->bind_param(
+                "sisss",
+                $notification_type,
+                $order_id,
+                $title,
+                $message,
+                $action_url
+            );
 
-$notification_stmt->execute();
-$notification_stmt->close();
+            $notification_stmt->execute();
+            $notification_stmt->close();
 
-/* Save all database changes. */
-$conn->commit();
+            /* Save all database changes. */
+            $conn->commit();
 
             $_SESSION["cart"] = [];
             $_SESSION["last_order_id"] = $order_id;
@@ -426,9 +415,6 @@ $conn->commit();
             $errors[] = "We could not place your order. Please check your cart and try again.";
         }
     }
-
-    $full_name = $posted_name;
-    $phone = $posted_phone;
 }
 ?>
 <!DOCTYPE html>
@@ -499,6 +485,11 @@ $conn->commit();
             color: white;
         }
 
+        .btn-green:disabled {
+            background: #899b91;
+            cursor: not-allowed;
+        }
+
         .total {
             color: #075b3d;
             font-weight: 800;
@@ -517,6 +508,12 @@ $conn->commit();
             border: 1px solid #d5e9d9;
             border-radius: 8px;
             padding: 12px;
+        }
+
+        .optional-label {
+            color: #68776e;
+            font-size: .85rem;
+            font-weight: normal;
         }
     </style>
 </head>
@@ -540,7 +537,7 @@ $conn->commit();
     <h1 class="section-title mb-2">Checkout</h1>
 
     <p class="text-secondary mb-4">
-        Choose delivery or collect your produce from an AgriConnect booking office.
+        Select an AgriConnect booking office where you will collect your produce.
     </p>
 
     <?php if (!empty($errors)): ?>
@@ -581,11 +578,9 @@ $conn->commit();
                         <input
                             type="text"
                             id="full_name"
-                            name="full_name"
                             class="form-control"
-                            maxlength="100"
                             value="<?= htmlspecialchars($full_name, ENT_QUOTES, "UTF-8") ?>"
-                            required
+                            readonly
                         >
                     </div>
 
@@ -597,124 +592,84 @@ $conn->commit();
                         <input
                             type="tel"
                             id="phone"
-                            name="phone"
                             class="form-control"
-                            maxlength="16"
                             value="<?= htmlspecialchars($phone, ENT_QUOTES, "UTF-8") ?>"
-                            placeholder="e.g. 0712345678"
-                            required
+                            readonly
                         >
                     </div>
 
                     <hr>
 
                     <h2 class="section-title h4 mb-3">
-                        How Would You Like to Receive Your Order?
+                        Pickup Booking Office
                     </h2>
 
-                    <div class="mb-3">
-                        <label for="fulfillment_method" class="form-label">
-                            Fulfilment Method
-                        </label>
+                    <?php if (empty($pickup_points)): ?>
 
-                        <select
-                            id="fulfillment_method"
-                            name="fulfillment_method"
-                            class="form-select"
-                            required
-                        >
-                            <option
-                                value="delivery"
-                                <?= $fulfillment_method === "delivery" ? "selected" : "" ?>
+                        <div class="alert alert-warning">
+                            <strong>No active booking offices available.</strong>
+                            Please contact the AgriConnect administrator before placing an order.
+                        </div>
+
+                    <?php else: ?>
+
+                        <div class="mb-3">
+                            <label for="pickup_point_id" class="form-label">
+                                Select Booking Office
+                            </label>
+
+                            <select
+                                id="pickup_point_id"
+                                name="pickup_point_id"
+                                class="form-select"
+                                required
                             >
-                                Delivery to My Location
-                            </option>
+                                <option value="">Choose a booking office</option>
 
-                            <option
-                                value="pickup"
-                                <?= $fulfillment_method === "pickup" ? "selected" : "" ?>
-                            >
-                                Pickup at a Booking Office
-                            </option>
-                        </select>
-                    </div>
+                                <?php foreach ($pickup_points as $point): ?>
+                                    <option
+                                        value="<?= (int) $point["pickup_point_id"] ?>"
+                                        <?= (int) $pickup_point_id === (int) $point["pickup_point_id"] ? "selected" : "" ?>
+                                    >
+                                        <?= htmlspecialchars($point["point_name"], ENT_QUOTES, "UTF-8") ?>
+                                        — <?= htmlspecialchars($point["address"], ENT_QUOTES, "UTF-8") ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
 
-                    <div class="mb-3" id="delivery_section">
-
-                        <label for="delivery_location" class="form-label">
-                            Delivery Location
-                        </label>
-
-                        <textarea
-                            id="delivery_location"
-                            name="delivery_location"
-                            class="form-control"
-                            rows="3"
-                            maxlength="255"
-                            placeholder="Enter county, town, estate, and directions"
-                        ><?= htmlspecialchars($delivery_location, ENT_QUOTES, "UTF-8") ?></textarea>
-
-                    </div>
-
-                    <div class="mb-3" id="pickup_section" hidden>
-
-                        <label for="pickup_point_id" class="form-label">
-                            Select Booking Office
-                        </label>
-
-                        <select
-                            id="pickup_point_id"
-                            name="pickup_point_id"
-                            class="form-select"
-                        >
-                            <option value="">Choose a booking office</option>
-
-                            <?php foreach ($pickup_points as $point): ?>
-                                <option
-                                    value="<?= (int) $point["pickup_point_id"] ?>"
-                                    <?= (int) $pickup_point_id === (int) $point["pickup_point_id"] ? "selected" : "" ?>
-                                >
-                                    <?= htmlspecialchars($point["point_name"], ENT_QUOTES, "UTF-8") ?>
-                                    — <?= htmlspecialchars($point["address"], ENT_QUOTES, "UTF-8") ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-
-                        <?php if (empty($pickup_points)): ?>
-                            <small class="text-danger">
-                                No active booking offices are available. Please contact the administrator.
-                            </small>
-                        <?php else: ?>
                             <small class="text-secondary">
-                                Select the office where you want to collect your produce.
+                                Choose the AgriConnect office where you will collect your produce.
                             </small>
-                        <?php endif; ?>
+                        </div>
 
-                        <div id="pickup_details" class="pickup-details mt-3" hidden>
+                        <div id="pickup_details" class="pickup-details mb-4" hidden>
                             <strong id="pickup_name"></strong>
                             <div id="pickup_address" class="small mt-1"></div>
                             <div id="pickup_phone" class="small mt-1"></div>
                             <div id="pickup_description" class="small mt-1"></div>
                         </div>
 
-                    </div>
+                    <?php endif; ?>
+
+                    <hr>
 
                     <div class="mb-4">
                         <label for="notes" class="form-label">
-                            Additional Notes (Optional)
+                            Additional Notes
+                            <span class="optional-label">(Optional)</span>
                         </label>
 
                         <textarea
                             id="notes"
                             name="notes"
                             class="form-control"
-                            rows="2"
+                            rows="3"
                             maxlength="1000"
-                            placeholder="Any special instructions"
+                            placeholder="Any special instructions? You can leave this blank."
                         ><?= htmlspecialchars($notes, ENT_QUOTES, "UTF-8") ?></textarea>
 
                         <small class="text-secondary">
-                            Additional notes are not yet stored in the database.
+                            Maximum 1000 characters. You do not have to fill in this field.
                         </small>
                     </div>
 
@@ -724,12 +679,16 @@ $conn->commit();
                         <p class="mb-0 mt-1 small">
                             Your order will initially be unpaid. Follow the
                             payment instructions provided by AgriConnect.
-                            Payment must be independently verified before
-                            your order is marked as paid.
+                            An administrator must verify your M-Pesa payment
+                            before your order is marked as paid.
                         </p>
                     </div>
 
-                    <button type="submit" class="btn-green w-100">
+                    <button
+                        type="submit"
+                        class="btn-green w-100"
+                        <?= empty($pickup_points) ? "disabled" : "" ?>
+                    >
                         Place Order — KSh <?= number_format($total_amount, 2) ?>
                     </button>
 
@@ -779,9 +738,8 @@ $conn->commit();
                     </div>
 
                     <p class="small text-secondary mt-3 mb-0">
-                        Placing an order does not confirm payment.
-                        An administrator must verify the M-Pesa transaction
-                        before the order can be fulfilled.
+                        Your order will be recorded as unpaid until
+                        an administrator verifies your M-Pesa payment.
                     </p>
 
                 </section>
@@ -797,14 +755,9 @@ $conn->commit();
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    const methodSelect = document.getElementById("fulfillment_method");
-    const deliverySection = document.getElementById("delivery_section");
-    const pickupSection = document.getElementById("pickup_section");
-
-    const deliveryInput = document.getElementById("delivery_location");
     const pickupSelect = document.getElementById("pickup_point_id");
-
     const pickupDetails = document.getElementById("pickup_details");
+
     const pickupName = document.getElementById("pickup_name");
     const pickupAddress = document.getElementById("pickup_address");
     const pickupPhone = document.getElementById("pickup_phone");
@@ -815,24 +768,8 @@ document.addEventListener("DOMContentLoaded", function () {
         JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
     ) ?>;
 
-    function updateFulfillmentMethod() {
-
-        const isPickup = methodSelect.value === "pickup";
-
-        deliverySection.hidden = isPickup;
-        pickupSection.hidden = !isPickup;
-
-        deliveryInput.required = !isPickup;
-        deliveryInput.disabled = isPickup;
-
-        pickupSelect.required = isPickup;
-        pickupSelect.disabled = !isPickup;
-
-        if (isPickup) {
-            deliveryInput.value = "";
-        }
-
-        updatePickupDetails();
+    if (!pickupSelect) {
+        return;
     }
 
     function updatePickupDetails() {
@@ -843,13 +780,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return String(item.pickup_point_id) === String(selectedId);
         });
 
-        if (!point || methodSelect.value !== "pickup") {
+        if (!point) {
             pickupDetails.hidden = true;
             return;
         }
 
         pickupName.textContent = point.point_name || "";
         pickupAddress.textContent = "Address: " + (point.address || "");
+
         pickupPhone.textContent = point.phone
             ? "Phone: " + point.phone
             : "Phone: Contact the administrator for details.";
@@ -859,10 +797,9 @@ document.addEventListener("DOMContentLoaded", function () {
         pickupDetails.hidden = false;
     }
 
-    methodSelect.addEventListener("change", updateFulfillmentMethod);
     pickupSelect.addEventListener("change", updatePickupDetails);
 
-    updateFulfillmentMethod();
+    updatePickupDetails();
 
 });
 </script>

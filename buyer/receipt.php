@@ -3,10 +3,7 @@
 session_start();
 require_once "../db.php";
 
-/*
- * AgriConnect Printable Receipt
- * Issuer: AgriConnect Administration
- */
+/* AgriConnect Order Confirmation and Official Receipt */
 
 function h($value) {
     return htmlspecialchars((string)($value ?? ""), ENT_QUOTES, "UTF-8");
@@ -43,6 +40,7 @@ $sql = "
         o.pickup_point_id,
         o.payment_method,
         o.payment_status,
+        o.mpesa_receipt_number AS order_mpesa_receipt,
         u.full_name AS buyer_name,
         u.email AS buyer_email,
         u.phone AS buyer_phone,
@@ -62,7 +60,7 @@ $stmt = $conn->prepare($sql);
 
 if (!$stmt) {
     http_response_code(500);
-    exit("Unable to prepare the receipt query. Check your database columns.");
+    exit("Unable to prepare the order query. Check your database columns.");
 }
 
 $stmt->bind_param("ii", $order_id, $buyer_id);
@@ -76,7 +74,7 @@ if (!$order) {
     exit("Order not found, or you do not have permission to view it.");
 }
 
-/* Fetch purchased items using the prices saved with the order */
+/* Fetch purchased items */
 $item_sql = "
     SELECT
         oi.product_id,
@@ -92,19 +90,25 @@ $item_sql = "
 ";
 
 $item_stmt = $conn->prepare($item_sql);
+
+if (!$item_stmt) {
+    http_response_code(500);
+    exit("Unable to retrieve order items.");
+}
+
 $item_stmt->bind_param("i", $order_id);
 $item_stmt->execute();
 $item_result = $item_stmt->get_result();
 
 $items = [];
+
 while ($item = $item_result->fetch_assoc()) {
     $items[] = $item;
 }
+
 $item_stmt->close();
 
-/* Fetch the latest M-Pesa payment record */
-$payment = null;
-
+/* Fetch a payment record that has been verified by administration */
 $payment_sql = "
     SELECT
         payment_id,
@@ -118,11 +122,20 @@ $payment_sql = "
         updated_at
     FROM mpesa_payments
     WHERE order_id = ?
+      AND payment_status = 'paid'
+      AND mpesa_receipt_number IS NOT NULL
+      AND mpesa_receipt_number <> ''
     ORDER BY payment_id DESC
     LIMIT 1
 ";
 
 $payment_stmt = $conn->prepare($payment_sql);
+
+if (!$payment_stmt) {
+    http_response_code(500);
+    exit("Unable to retrieve payment information.");
+}
+
 $payment_stmt->bind_param("i", $order_id);
 $payment_stmt->execute();
 $payment_result = $payment_stmt->get_result();
@@ -130,39 +143,41 @@ $payment = $payment_result->fetch_assoc();
 $payment_stmt->close();
 
 /*
- * Do not treat a receipt submitted by the buyer as proof of payment.
- * The database must already record the order as paid.
+ * An official receipt requires:
+ * 1. The order is marked paid.
+ * 2. Administration has marked an M-Pesa payment as paid.
+ * 3. The verified M-Pesa receipt number matches the order record.
  */
-$is_paid = strtolower((string)$order["payment_status"]) === "paid";
+$order_receipt = trim((string)($order["order_mpesa_receipt"] ?? ""));
+$payment_receipt = trim((string)($payment["mpesa_receipt_number"] ?? ""));
 
-$payment_status_label = $is_paid
-    ? "PAID - PAYMENT VERIFIED"
-    : "NOT PAID - PAYMENT NOT CONFIRMED";
+$is_paid = (
+    strtolower((string)$order["payment_status"]) === "paid"
+    && $payment !== null
+    && $order_receipt !== ""
+    && $payment_receipt !== ""
+    && $order_receipt === $payment_receipt
+);
 
-$receipt_number = "AC-ORD-" . str_pad(
+$document_title = $is_paid ? "ORDER RECEIPT" : "ORDER CONFIRMATION";
+
+$document_number = "AC-ORD-" . str_pad(
     (string)$order["order_id"],
     6,
     "0",
     STR_PAD_LEFT
 );
 
-$fulfillment = strtolower(
-    trim((string)$order["fulfillment_method"])
-);
+$fulfillment = strtolower(trim((string)$order["fulfillment_method"]));
 
 $is_pickup = (
     strpos($fulfillment, "pickup") !== false ||
     strpos($fulfillment, "pick-up") !== false
 );
 
-$paid_amount = $is_paid
-    ? (float)$order["total_amount"]
-    : 0;
-
-$balance = max(
-    0,
-    (float)$order["total_amount"] - $paid_amount
-);
+$total_amount = (float)$order["total_amount"];
+$paid_amount = $is_paid ? $total_amount : 0;
+$balance = max(0, $total_amount - $paid_amount);
 
 $conn->close();
 ?>
@@ -172,9 +187,7 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Receipt <?= h($receipt_number) ?> | AgriConnect
-    </title>
+    <title><?= h($document_title) ?> <?= h($document_number) ?> | AgriConnect</title>
 
     <style>
         * {
@@ -198,7 +211,7 @@ $conn->close();
             padding: 38px;
             background: #fff;
             border: 1px solid #e1e8e2;
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: 0 5px 25px rgba(0, 0, 0, 0.06);
         }
 
@@ -211,10 +224,22 @@ $conn->close();
             border-bottom: 3px solid #167447;
         }
 
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+        }
+
         .brand {
             margin: 0;
             color: #145b38;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -1px;
         }
@@ -347,6 +372,11 @@ $conn->close();
             font-size: 12px;
         }
 
+        .notice.verified {
+            border-left-color: #167447;
+            background: #edf7ef;
+        }
+
         .footer {
             margin-top: 32px;
             padding-top: 17px;
@@ -410,6 +440,15 @@ $conn->close();
             .actions {
                 flex-wrap: wrap;
             }
+
+            .brand {
+                font-size: 24px;
+            }
+
+            .logo {
+                width: 60px;
+                height: 60px;
+            }
         }
 
         @page {
@@ -444,11 +483,7 @@ $conn->close();
                 break-inside: auto;
             }
 
-            tr {
-                break-inside: avoid;
-            }
-
-            .top {
+            tr, .top {
                 break-inside: avoid;
             }
         }
@@ -461,22 +496,35 @@ $conn->close();
 
     <header class="top">
         <div>
-            <h1 class="brand">Agri<span>Connect</span></h1>
-            <p class="issuer">
-                Issued by: AgriConnect Administration<br>
-                Connecting farmers to the marketplace
-            </p>
+            <div class="brand-area">
+                <img
+                    src="../images/logo.png"
+                    alt="AgriConnect Logo"
+                    class="logo"
+                >
+
+                <div>
+                    <h1 class="brand">Agri<span>Connect</span></h1>
+                    <p class="issuer">
+                        Issued by: AgriConnect Administration<br>
+                        Connecting farmers to the marketplace
+                    </p>
+                </div>
+            </div>
         </div>
 
         <div class="receipt-heading">
-            <h2>ORDER RECEIPT</h2>
+            <h2><?= h($document_title) ?></h2>
+
             <div class="receipt-number">
-                <?= h($receipt_number) ?>
+                <?= h($document_number) ?>
             </div>
+
             <div>
                 Order date:
                 <?= h(date("d M Y, h:i A", strtotime($order["order_date"]))) ?>
             </div>
+
             <div>
                 Printed:
                 <?= h(date("d M Y, h:i A")) ?>
@@ -525,26 +573,26 @@ $conn->close();
                 </thead>
 
                 <tbody>
-                <?php foreach ($items as $item): ?>
-                    <tr>
-                        <td>
-                            <?= h($item["product_name"] ?: "Product #" . $item["product_id"]) ?>
-                        </td>
+                    <?php foreach ($items as $item): ?>
+                        <tr>
+                            <td>
+                                <?= h($item["product_name"] ?: "Product #" . $item["product_id"]) ?>
+                            </td>
 
-                        <td class="number">
-                            <?= h(rtrim(rtrim(number_format((float)$item["quantity"], 2, ".", ""), "0"), ".")) ?>
-                            <?= h($item["unit"] ?? "") ?>
-                        </td>
+                            <td class="number">
+                                <?= h(rtrim(rtrim(number_format((float)$item["quantity"], 2, ".", ""), "0"), ".")) ?>
+                                <?= h($item["unit"] ?? "") ?>
+                            </td>
 
-                        <td class="number">
-                            <?= money($item["unit_price"]) ?>
-                        </td>
+                            <td class="number">
+                                <?= money($item["unit_price"]) ?>
+                            </td>
 
-                        <td class="number">
-                            <?= money($item["subtotal"]) ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                            <td class="number">
+                                <?= money($item["subtotal"]) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>
@@ -554,27 +602,30 @@ $conn->close();
         <div class="totals">
             <div class="total-row">
                 <span>Order Total</span>
-                <strong><?= money($order["total_amount"]) ?></strong>
+                <strong><?= money($total_amount) ?></strong>
             </div>
 
-            <div class="total-row">
-                <span>Amount Paid</span>
-                <strong><?= money($paid_amount) ?></strong>
-            </div>
+            <?php if ($is_paid): ?>
+                <div class="total-row">
+                    <span>Amount Paid</span>
+                    <strong><?= money($paid_amount) ?></strong>
+                </div>
 
-            <div class="total-row">
-                <span>Balance</span>
-                <strong><?= money($balance) ?></strong>
-            </div>
+                <div class="total-row">
+                    <span>Balance</span>
+                    <strong><?= money($balance) ?></strong>
+                </div>
 
-            <div class="total-row grand-total">
-                <span>
-                    <?= $is_paid ? "Total Paid" : "Total Due" ?>
-                </span>
-                <span>
-                    <?= money($is_paid ? $paid_amount : $balance) ?>
-                </span>
-            </div>
+                <div class="total-row grand-total">
+                    <span>Total Paid</span>
+                    <span><?= money($paid_amount) ?></span>
+                </div>
+            <?php else: ?>
+                <div class="total-row grand-total">
+                    <span>Amount Due</span>
+                    <span><?= money($total_amount) ?></span>
+                </div>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -592,58 +643,64 @@ $conn->close();
             <div>
                 <span class="detail-label">Payment Status</span>
                 <span class="detail-value">
-                    <span class="status <?= $is_paid ? "paid" : "" ?>">
-                        <?= h($payment_status_label) ?>
+                    <?php if ($is_paid): ?>
+                        <span class="status paid">PAID - PAYMENT VERIFIED</span>
+                    <?php else: ?>
+                        <span class="status">AWAITING PAYMENT VERIFICATION</span>
+                    <?php endif; ?>
+                </span>
+            </div>
+
+            <?php if ($is_paid): ?>
+                <div>
+                    <span class="detail-label">Verified M-Pesa Receipt Number</span>
+                    <span class="detail-value">
+                        <?= h($order_receipt) ?>
                     </span>
-                </span>
-            </div>
+                </div>
 
-            <div>
-                <span class="detail-label">M-Pesa Receipt Number</span>
-                <span class="detail-value">
-                    <?= h($payment["mpesa_receipt_number"] ?? "Not recorded") ?>
-                </span>
-            </div>
+                <div>
+                    <span class="detail-label">Payment Phone Number</span>
+                    <span class="detail-value">
+                        <?= h($payment["phone_number"] ?: "Not recorded") ?>
+                    </span>
+                </div>
 
-            <div>
-                <span class="detail-label">Payment Phone Number</span>
-                <span class="detail-value">
-                    <?= h($payment["phone_number"] ?? "Not recorded") ?>
-                </span>
-            </div>
+                <div>
+                    <span class="detail-label">Verified Payment Amount</span>
+                    <span class="detail-value">
+                        <?= money($payment["amount"]) ?>
+                    </span>
+                </div>
 
-            <div>
-                <span class="detail-label">Payment Record Status</span>
-                <span class="detail-value">
-                    <?= h(ucfirst($payment["payment_status"] ?? "No payment submitted")) ?>
-                </span>
-            </div>
-
-            <div>
-                <span class="detail-label">Last Payment Record Update</span>
-                <span class="detail-value">
-                    <?php
-                    if (!empty($payment["updated_at"])) {
-                        echo h(date("d M Y, h:i A", strtotime($payment["updated_at"])));
-                    } else {
-                        echo "Not recorded";
-                    }
-                    ?>
-                </span>
-            </div>
+                <div>
+                    <span class="detail-label">Payment Verification Date</span>
+                    <span class="detail-value">
+                        <?php
+                        if (!empty($payment["updated_at"])) {
+                            echo h(date("d M Y, h:i A", strtotime($payment["updated_at"])));
+                        } else {
+                            echo "Not recorded";
+                        }
+                        ?>
+                    </span>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <?php if (!$is_paid): ?>
-            <div class="notice">
-                <strong>Important:</strong>
-                This document is an order summary, not proof of completed payment.
-                Payment must be verified by AgriConnect Administration before it
-                can be treated as paid.
+        <?php if ($is_paid): ?>
+            <div class="notice verified">
+                <strong>Payment verified.</strong>
+                AgriConnect Administration has confirmed this payment.
+                This is your official AgriConnect payment receipt.
+                Keep it for your records.
             </div>
         <?php else: ?>
             <div class="notice">
-                Payment is recorded as paid in AgriConnect.
-                Keep this receipt for your records.
+                <strong>Order confirmation only.</strong>
+                Your payment has not yet been verified by AgriConnect Administration.
+                This document is not an official payment receipt. An official receipt
+                will be available after successful payment verification.
             </div>
         <?php endif; ?>
     </section>
@@ -667,7 +724,6 @@ $conn->close();
             </div>
 
             <?php if ($is_pickup): ?>
-
                 <div>
                     <span class="detail-label">Pickup Point</span>
                     <span class="detail-value">
@@ -685,26 +741,23 @@ $conn->close();
                 <div>
                     <span class="detail-label">Pickup Phone</span>
                     <span class="detail-value">
-                        <?= h($order["pickup_phone"] ?? "0712345678") ?>
+                        <?= h($order["pickup_phone"] ?: "Not provided") ?>
                     </span>
                 </div>
 
                 <div>
                     <span class="detail-label">Pickup Description</span>
                     <span class="detail-value">
-                        <?= h($order["pickup_description"] ?? "Not provided") ?>
+                        <?= h($order["pickup_description"] ?: "Not provided") ?>
                     </span>
                 </div>
-
             <?php else: ?>
-
                 <div>
                     <span class="detail-label">Delivery Location</span>
                     <span class="detail-value">
                         <?= h($order["delivery_location"] ?? "Not provided") ?>
                     </span>
                 </div>
-
             <?php endif; ?>
         </div>
     </section>
@@ -712,14 +765,14 @@ $conn->close();
     <footer class="footer">
         <strong>Thank you for choosing AgriConnect!</strong><br>
         Connecting farmers to buyers through a trusted marketplace.<br>
-        This receipt was generated electronically by AgriConnect.
+        This document was generated electronically by AgriConnect.
     </footer>
 
 </main>
 
 <div class="actions">
     <button class="button" onclick="window.print()">
-        Print Receipt / Save as PDF
+        Print / Save as PDF
     </button>
 
     <a class="button secondary" href="orders.php">
