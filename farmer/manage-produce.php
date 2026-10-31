@@ -142,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Produce listing deleted successfully.';
             }
 
+           
             // ADD OR UPDATE PRODUCT
             elseif ($action === 'save') {
                 $product_id = (int) ($_POST['product_id'] ?? 0);
@@ -164,24 +165,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('Please select a valid category.');
                 }
 
-                if (
-                    $price_input === '' ||
-                    !is_numeric($price_input) ||
-                    (float) $price_input < 0
-                ) {
+                if ($price_input === '' || !is_numeric($price_input) || (float)$price_input < 0) {
                     throw new Exception('Enter a valid price of zero or more.');
                 }
 
-                if (
-                    $quantity_input === '' ||
-                    !is_numeric($quantity_input) ||
-                    (float) $quantity_input < 0
-                ) {
+                if ($quantity_input === '' || !is_numeric($quantity_input) || (float)$quantity_input < 0) {
                     throw new Exception('Enter a valid quantity of zero or more.');
                 }
 
                 if ($unit === '' || strlen($unit) > 50) {
-                    throw new Exception('Enter a quantity unit, for example kg, bag or crate.');
+                    throw new Exception('Enter a valid quantity unit.');
                 }
 
                 if (strlen($location) > 255) {
@@ -192,10 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('Please select a valid availability status.');
                 }
 
-                $price = (float) $price_input;
-                $quantity = (float) $quantity_input;
+                $price = (float)$price_input;
+                $quantity = (float)$quantity_input;
 
-                // Confirm the selected category exists
+                // Confirm category exists
                 $stmt = $conn->prepare(
                     "SELECT category_id FROM categories WHERE category_id = ?"
                 );
@@ -208,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('The selected category does not exist.');
                 }
 
-                // Load the existing image when editing
+                // Load existing image when editing
                 $old_image = '';
 
                 if ($product_id > 0) {
@@ -228,14 +221,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $old_image = $existing['image'] ?? '';
                 }
 
-                // Validate and save an optional photo
+                // Handle optional image upload
                 $image = $old_image;
                 $new_image_path = null;
 
-                if (
-                    isset($_FILES['image']) &&
-                    $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE
-                ) {
+                if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
                     if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
                         throw new Exception('The photo upload failed. Please try again.');
                     }
@@ -249,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $allowed_types = [
                         'image/jpeg' => 'jpg',
-                        'image/png'  => 'png',
+                        'image/png' => 'png',
                         'image/webp' => 'webp'
                     ];
 
@@ -257,15 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         throw new Exception('Use a JPG, PNG or WEBP photo.');
                     }
 
-                    if (!is_dir($upload_dir) &&
-                        !mkdir($upload_dir, 0755, true) &&
-                        !is_dir($upload_dir)) {
+                    if (!is_dir($upload_dir) && !mkdir($upload_dir, 0755, true) && !is_dir($upload_dir)) {
                         throw new Exception('Could not create the photo folder.');
                     }
 
-                    $new_filename = bin2hex(random_bytes(16))
-                        . '.' . $allowed_types[$mime];
-
+                    $new_filename = bin2hex(random_bytes(16)) . '.' . $allowed_types[$mime];
                     $destination = $upload_dir . $new_filename;
 
                     if (!move_uploaded_file($_FILES['image']['tmp_name'], $destination)) {
@@ -277,6 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($product_id > 0) {
+                    // Update existing listing
                     $stmt = $conn->prepare(
                         "UPDATE products
                          SET category_id = ?, product_name = ?,
@@ -308,38 +295,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $message = 'Your produce listing has been updated.';
+
                 } else {
-                   
-                       $stmt = $conn->prepare(
-    "INSERT INTO products
-     (farmer_id, category_id, product_name, price,
-      unit, quantity_available, image, location, status,
-      created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
-);
+                    // Insert new produce listing
+                    $stmt = $conn->prepare(
+                        "INSERT INTO products
+                         (farmer_id, category_id, product_name, price,
+                          unit, quantity_available, image, location, status,
+                          created_at, updated_at)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
+                    );
 
-$stmt->bind_param(
-    "iidsdssss",
-    $farmer_id,
-    $category_id,
-    $product_name,
-    $price,
-    $unit,
-    $quantity,
-    $image,
-    $location,
-    $status
-);
+                    $stmt->bind_param(
+                        "iisdsdsss",
+                        $farmer_id,
+                        $category_id,
+                        $product_name,
+                        $price,
+                        $unit,
+                        $quantity,
+                        $image,
+                        $location,
+                        $status
+                    );
 
-$stmt->execute();
-$stmt->close();
+                    $stmt->execute();
+                    $product_id = (int)$conn->insert_id;
+                    $stmt->close();
 
-$message = 'Your produce has been added successfully.';
+                    // Create admin notification
+                    $notification_type = "product";
+                    $title = "New Produce Listing";
+                    $message_text = "A farmer has submitted a new produce listing: " . $product_name . ".";
+                    $action_url = "products.php";
+
+                    $notification_stmt = $conn->prepare(
+                        "INSERT IGNORE INTO admin_notifications
+                         (notification_type, reference_id, title, message, action_url)
+                         VALUES (?, ?, ?, ?, ?)"
+                    );
+
+                    $notification_stmt->bind_param(
+                        "sisss",
+                        $notification_type,
+                        $product_id,
+                        $title,
+                        $message_text,
+                        $action_url
+                    );
+
+                    $notification_stmt->execute();
+                    $notification_stmt->close();
+
+                    $message = 'Your produce has been added successfully.';
                 }
 
             } else {
                 throw new Exception('Unknown action.');
             }
+
         } catch (Throwable $ex) {
             $message = 'Could not complete the action: ' . $ex->getMessage();
             $message_type = 'danger';

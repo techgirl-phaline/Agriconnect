@@ -378,8 +378,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
             $item_stmt->close();
             $stock_stmt->close();
 
-            /* Save all database changes. */
-            $conn->commit();
+            /* Create admin notification for the new order. */
+$notification_type = "order";
+$title = "New Order Received";
+
+$message = "A buyer has placed Order #" . $order_id .
+           " worth KSh " . number_format($locked_total, 2) . ".";
+
+$action_url = "orders.php";
+
+$notification_stmt = $conn->prepare(
+    "INSERT IGNORE INTO admin_notifications
+        (notification_type, reference_id, title, message, action_url)
+     VALUES (?, ?, ?, ?, ?)"
+);
+
+$notification_stmt->bind_param(
+    "sisss",
+    $notification_type,
+    $order_id,
+    $title,
+    $message,
+    $action_url
+);
+
+$notification_stmt->execute();
+$notification_stmt->close();
+
+/* Save all database changes. */
+$conn->commit();
 
             $_SESSION["cart"] = [];
             $_SESSION["last_order_id"] = $order_id;

@@ -13,6 +13,22 @@ if (
     header("Location: ../login.php");
     exit;
 }
+/* Get unread notification count */
+$unread_query = $conn->query(
+    "SELECT COUNT(*) AS unread_count
+     FROM admin_notifications
+     WHERE is_read = 0"
+);
+
+$unread_count = (int) $unread_query->fetch_assoc()['unread_count'];
+
+/* Get the latest 10 admin notifications */
+$notifications_query = $conn->query(
+    "SELECT *
+     FROM admin_notifications
+     ORDER BY created_at DESC
+     LIMIT 10"
+);
 
 // Dashboard statistics
 $stats = [
@@ -432,6 +448,18 @@ function e($value) {
                 <a class="nav-link" href="orders.php">
                     📦 Manage Orders
                 </a>
+                 
+                
+                <a class="nav-link" href="notifications.php">
+    🔔 Notifications
+
+    <?php if ($unread_count > 0): ?>
+        <span class="badge bg-warning text-dark">
+            <?= $unread_count ?>
+        </span>
+    <?php endif; ?>
+</a>
+                
                 
 <a href="payments.php" class="btn btn-outline-success">
     <i class="bi bi-shield-check"></i>
@@ -488,12 +516,22 @@ function e($value) {
                     listings, and monitor customer orders from one place.
                 </p>
 
+                        </section>
+
+            <!-- Admin Activity Notifications -->
+            <section class="card border-0 shadow-sm mb-5"
+                     style="border-radius: 16px;">
+
+                <!-- PASTE THE REST OF THE NOTIFICATION CODE HERE -->
+
             </section>
 
             <!-- Platform Overview -->
             <h5 class="section-title mb-3">
                 Platform Overview
             </h5>
+
+            <div class="row g-3 mb-5">
 
             <div class="row g-3 mb-5">
 

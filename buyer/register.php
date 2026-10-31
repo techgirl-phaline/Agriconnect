@@ -72,12 +72,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $role
             );
 
-            if ($stmt->execute()) {
-                $stmt->close();
-                $conn->close();
+            $stmt->execute();
 
-                header("Location: login.php?registered=success");
-                exit;
+/* Get the newly registered buyer's ID */
+$buyer_id = (int) $conn->insert_id;
+
+$stmt->close();
+
+/* Create admin notification for new buyer registration */
+$notification_type = "buyer";
+$title = "New Buyer Registration";
+
+$message = "A new buyer, " . $full_name .
+           ", has registered and is awaiting review.";
+
+$action_url = "users.php";
+
+$notification_stmt = $conn->prepare(
+    "INSERT IGNORE INTO admin_notifications
+        (notification_type, reference_id, title, message, action_url)
+     VALUES (?, ?, ?, ?, ?)"
+);
+
+$notification_stmt->bind_param(
+    "sisss",
+    $notification_type,
+    $buyer_id,
+    $title,
+    $message,
+    $action_url
+);
+
+$notification_stmt->execute();
+$notification_stmt->close();
+
+$conn->close();
+
+header("Location: login.php?registered=success");
+exit;
             } else {
                 $message = "Registration failed. Please try again.";
                 $message_type = "danger";

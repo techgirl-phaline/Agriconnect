@@ -12,7 +12,6 @@ $product_id = (int) $_GET['id'];
 $sql = "SELECT
             p.product_id,
             p.product_name,
-            p.description,
             p.price,
             p.unit,
             p.quantity_available,
@@ -155,10 +154,10 @@ if (!$product) {
                     <?= htmlspecialchars($product['location'] ?? 'Not specified') ?>
                 </p>
 
-                <p>
-                    <span class="detail-label">Description:</span><br>
-                    <?= nl2br(htmlspecialchars($product['description'] ?? 'No description available.')) ?>
-                </p>
+            <p>
+    <span class="detail-label">Description:</span><br>
+    No description available.
+</p>
 
                 <a href="produce-catalogue.php"
                    class="btn btn-success">

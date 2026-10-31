@@ -749,9 +749,9 @@ function h($value) {
 
                                     <?php if (!empty($product['image'])): ?>
                                         <img
-                                            src="../<?= h($product['image']) ?>"
-                                            alt="<?= h($product['product_name']) ?>"
-                                            class="product-thumb">
+    src="../uploads/products/<?= rawurlencode(basename($product['image'])) ?>"
+    alt="<?= h($product['product_name']) ?>"
+    class="product-thumb">
                                     <?php else: ?>
                                         <div class="product-thumb d-flex align-items-center justify-content-center">
                                             <i class="bi bi-image text-success"></i>

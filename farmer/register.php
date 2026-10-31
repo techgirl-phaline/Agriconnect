@@ -115,6 +115,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $profile->execute();
                 $profile->close();
+                /* Create admin notification for new farmer registration */
+$notification_type = "farmer";
+$title = "New Farmer Registration";
+
+$message = "A new farmer, " . $full_name .
+           ", has registered and is awaiting review.";
+
+$action_url = "farmers.php";
+
+$notification_stmt = $conn->prepare(
+    "INSERT IGNORE INTO admin_notifications
+        (notification_type, reference_id, title, message, action_url)
+     VALUES (?, ?, ?, ?, ?)"
+);
+
+$notification_stmt->bind_param(
+    "sisss",
+    $notification_type,
+    $user_id,
+    $title,
+    $message,
+    $action_url
+);
+
+$notification_stmt->execute();
+$notification_stmt->close();
 
                 $conn->commit();
 
