@@ -26,12 +26,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt = $conn->prepare(
             "UPDATE products
              SET approval_status = ?, updated_at = NOW()
-             WHERE product_id = ?"
+             WHERE product_id = ?
+AND approval_status = 'pending'"
         );
 
         $stmt->bind_param("si", $approval_status, $product_id);
 
-        if ($stmt->execute() && $stmt->affected_rows >= 0) {
+        if ($stmt->execute() && $stmt->affected_rows > 0) {
             $message = ($action === "approve")
                 ? "Produce listing approved successfully."
                 : "Produce listing rejected.";
@@ -51,7 +52,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 $sql = "SELECT
             p.product_id,
             p.product_name,
-            p.description,
             p.price,
             p.unit,
             p.quantity_available,
@@ -459,9 +459,6 @@ function e($value) {
                                     </div>
                                 <?php endif; ?>
                                 <div class="fw-bold"><?= e($item["product_name"]) ?></div>
-                                <small class="text-secondary">
-                                    <?= e($item["description"]) ?>
-                                </small>
                             </td>
 
                             <td>
