@@ -1,0 +1,20 @@
+# Environment and sensitive configuration
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+error_log
+*.tmp
+*.bak
+
+# Operating system files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+payment-config.php
