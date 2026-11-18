@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $role
             );
 
-            $stmt->execute();
+           if ($stmt->execute()) {
 
 /* Get the newly registered buyer's ID */
 $buyer_id = (int) $conn->insert_id;
